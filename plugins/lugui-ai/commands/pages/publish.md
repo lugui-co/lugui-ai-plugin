@@ -3,7 +3,7 @@ description: Validate an HTML file and publish it to a public pages.lugui.ai lin
 argument-hint: "<arquivo.html>"
 ---
 
-# /lugui-publish
+# /lugui-ai:pages:publish
 
 Publish an HTML page to a public `pages.lugui.ai/<slug>` URL. Everything is done
 with `curl` — you (Claude) read the config, build the request body, call the
@@ -13,7 +13,7 @@ API, and report the result. The file to publish is in `$ARGUMENTS`.
 
 1. **Read the config.** Load `~/.lugui/config.json` and extract `pages_api` and
    `token`. If the file is missing, or either field is empty, STOP and tell the
-   user to run `/lugui-setup` first. Never print the token.
+   user to run `/lugui-ai:setup` first. Never print the token.
 
 2. **Load the security skill.** Read and apply `security-checklist/SKILL.md`.
 
@@ -50,7 +50,7 @@ API, and report the result. The file to publish is in `$ARGUMENTS`.
 
 6. **Build the JSON body in a temp file (do NOT interpolate the HTML inline).**
    The HTML contains quotes and newlines, so escape it as a proper JSON string.
-   Write the request body to a temp file, e.g. `/tmp/lugui-publish.json`, with
+   Write the request body to a temp file, e.g. `/tmp/lugui-ai-publish.json`, with
    this shape:
 
    ```json
@@ -74,7 +74,7 @@ API, and report the result. The file to publish is in `$ARGUMENTS`.
    curl -sS -w "\n%{http_code}" -X POST "<pages_api>/pages" \
      -H "Authorization: Bearer <token>" \
      -H "Content-Type: application/json" \
-     --data @/tmp/lugui-publish.json
+     --data @/tmp/lugui-ai-publish.json
    ```
 
    The last line of output is the HTTP status code; everything before it is the
@@ -82,8 +82,8 @@ API, and report the result. The file to publish is in `$ARGUMENTS`.
 
 8. **Report the result.** On **200/201**, parse the response JSON and show the
    public `url` (and `expires_at` if present, for ephemeral pages). Map errors:
-   - **401 / 403** → invalid token or no permission → run `/lugui-setup` to redo
-     the web login and get a fresh token.
+   - **401 / 403** → invalid token or no permission → run `/lugui-ai:setup` to
+     redo the web login and get a fresh token.
    - **409** → that path is already used by someone else → ask the user for a
      different path and retry.
    - **413** → HTML too large → trim the page and retry.
@@ -91,7 +91,7 @@ API, and report the result. The file to publish is in `$ARGUMENTS`.
      (ask for a different path) or the HTML is invalid (empty / not HTML /
      contains a secret) → fix and retry.
 
-9. **Clean up.** Remove the temp JSON file (`rm -f /tmp/lugui-publish.json`) so
+9. **Clean up.** Remove the temp JSON file (`rm -f /tmp/lugui-ai-publish.json`) so
    the HTML/body doesn't linger.
 
 ## Notes

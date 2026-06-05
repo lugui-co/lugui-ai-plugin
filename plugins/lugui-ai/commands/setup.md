@@ -1,10 +1,11 @@
 ---
-description: One-time setup for Lugui Cloud — log in on the web with your @lugui.ai account, paste the token shown, and validate it. Self-service, no admin, no Python.
+description: One-time setup for the lugui-ai suite — log in on the web with your @lugui.ai account, paste the token shown, and validate it. Self-service, no admin, no Python.
 ---
 
-# /lugui-setup
+# /lugui-ai:setup
 
-Configure this machine to publish to `pages.lugui.ai`. Authentication is a
+Authenticate this machine for the **lugui-ai** suite (used today by page
+publishing, and by future features). Authentication is a
 **personal access token** (`lgp_...`) that you obtain yourself via **web login**:
 you open a URL, sign in with your **@lugui.ai** account, and the page shows you a
 token to copy. No admin issues it for you. Publishing is done entirely with
@@ -26,7 +27,7 @@ token to copy. No admin issues it for you. Publishing is done entirely with
    ```
 
    - **200** → already configured. Tell the user they're good to go
-     (`/lugui-publish ./page.html`) and **STOP** — skip the login.
+     (`/lugui-ai:pages:publish ./page.html`) and **STOP** — skip the login.
    - **401 / no token in config** → continue to step 3 to authenticate.
 
 3. **Open the login page in the user's browser** at **`{pages_api}/login`**.
@@ -69,7 +70,7 @@ token to copy. No admin issues it for you. Publishing is done entirely with
 
 6. **Validate the new token** (same curl as step 2):
 
-   - **200** → done. Tell the user they can now run `/lugui-publish ./page.html`.
+   - **200** → done. Tell the user they can now run `/lugui-ai:pages:publish ./page.html`.
    - **401** → wrong/expired token. Reopen `{pages_api}/login`, copy a fresh
      token, and retry. Do NOT keep a bad token.
    - **Connection error** → check the `pages_api` URL is reachable.
@@ -77,5 +78,5 @@ token to copy. No admin issues it for you. Publishing is done entirely with
 ## Notes
 
 - Never print the contents of `~/.lugui/config.json` (it holds the token).
-- This token authenticates every publish. If it leaks or expires, just redo the
-  web login at `{pages_api}/login` to get a new one and run `/lugui-setup`.
+- This token authenticates the whole suite. If it leaks or expires, just redo
+  the web login at `{pages_api}/login` to get a new one and run `/lugui-ai:setup`.

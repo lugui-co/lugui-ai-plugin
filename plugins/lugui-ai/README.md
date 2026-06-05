@@ -1,8 +1,11 @@
-# lugui-cloud (Claude Code plugin)
+# lugui-ai (Claude Code plugin)
 
-Internal Lugui plugin for Claude Code. It helps you (1) generate **on-brand,
-secret-scanned** HTML and (2) publish it to a public link at
-`pages.lugui.ai/<slug>` — backed by the `pages-publisher` service in this repo.
+**lugui-ai** is Lugui's internal productivity suite for Claude Code — a growing
+set of features behind a single plugin. The first feature is **page
+publishing** (generate on-brand, secret-scanned HTML and publish it to a public
+link at `pages.lugui.ai/<slug>`, backed by the `pages-publisher` service in this
+repo). More will follow (pages → skills → …), all sharing the same one-time
+web-login auth.
 
 > **Self-service, no admin, no Python.** Publishing is just Claude running
 > `curl`. Authentication is a **personal access token** (`lgp_...`) you get
@@ -14,11 +17,11 @@ secret-scanned** HTML and (2) publish it to a public link at
 ## What you get
 
 - **Commands**
-  - `/lugui-setup` — save your personal token in `~/.lugui/config.json` and
-    validate it (one time per machine).
-  - `/lugui-publish <arquivo.html>` — loads the security skill, asks
-    permanent/ephemeral (+ optional slug), sanity-checks for secrets, then
-    publishes via `curl`.
+  - `/lugui-ai:setup` — one-time auth for the whole suite: web login, paste the
+    `lgp_...` token, saved to `~/.lugui/config.json` and validated.
+  - `/lugui-ai:pages:publish <arquivo.html>` — loads the security skill, asks
+    permanent/ephemeral (+ optional canonical path), sanity-checks for secrets,
+    then publishes via `curl`.
 - **Skills** (auto-applied by Claude when relevant)
   - `branding` — Lugui design tokens + a copyable on-brand HTML template.
   - `code-best-practices` — semantic, accessible, self-contained, CSP-friendly HTML/CSS/JS.
@@ -26,29 +29,30 @@ secret-scanned** HTML and (2) publish it to a public link at
 
 ## Install
 
-From a Claude Code session, add this repo as a marketplace and install the plugin:
+From a Claude Code session, add the public mirror as a marketplace and install
+the plugin:
 
 ```
-/plugin marketplace add lugui-co/lugui-ai-powered
-/plugin install lugui-cloud@lugui-marketplace
+/plugin marketplace add lugui-co/lugui-ai-plugin
+/plugin install lugui-ai@lugui-marketplace
 ```
 
 For local development against a checkout, point the marketplace at the path:
 
 ```
 /plugin marketplace add /absolute/path/to/lugui-ai-powered
-/plugin install lugui-cloud@lugui-marketplace
+/plugin install lugui-ai@lugui-marketplace
 ```
 
-That's the whole install — no `pip`, no dependencies. Then run `/lugui-setup`.
+That's the whole install — no `pip`, no dependencies. Then run `/lugui-ai:setup`.
 
 ## Setup (web login → token)
 
-Run `/lugui-setup`. Claude shows you a login URL — **`{pages_api}/login`**
-(default `https://pages-api.coolify.lugui.ai/login`). Open it in your browser,
-sign in with your **@lugui.ai** account, copy the `lgp_...` token shown, and
-paste it back. Claude writes `~/.lugui/config.json` and validates the token
-against the API. It's fully self-service — no admin issues the token.
+Run `/lugui-ai:setup`. Claude opens the login URL — **`{pages_api}/login`**
+(default `https://pages-api.coolify.lugui.ai/login`) — in your browser. Sign in
+with your **@lugui.ai** account, copy the `lgp_...` token shown, and paste it
+back. Claude writes `~/.lugui/config.json` and validates the token against the
+API. It's fully self-service — no admin issues the token.
 
 `~/.lugui/config.json` looks like:
 
@@ -61,13 +65,13 @@ against the API. It's fully self-service — no admin issues the token.
 
 The file is written with mode `600`. Never commit or share it — it holds your
 token. If the token leaks or expires, just redo the web login at
-`{pages_api}/login` to get a fresh one and run `/lugui-setup` again.
+`{pages_api}/login` to get a fresh one and run `/lugui-ai:setup` again.
 
 ## Usage
 
 ```
-/lugui-setup                      # once per machine — web login, paste lgp_ token
-/lugui-publish ./landing.html     # asks permanent/ephemeral, checks, publishes
+/lugui-ai:setup                          # once per machine — web login, paste lgp_ token
+/lugui-ai:pages:publish ./landing.html   # asks permanent/ephemeral, checks, publishes
 ```
 
 ## How publishing works

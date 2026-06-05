@@ -1,6 +1,6 @@
 ---
 name: security-checklist
-description: Pre-publication security gate for pages.lugui.ai — what must NEVER appear in a public page (secrets, client PII, internal endpoints) and the auth requirement (@lugui.ai only). Load this BEFORE running /lugui-publish.
+description: Pre-publication security gate for pages.lugui.ai — what must NEVER appear in a public page (secrets, client PII, internal endpoints) and the auth requirement (@lugui.ai only). Load this BEFORE running /lugui-ai:pages:publish.
 ---
 
 # Security checklist (run BEFORE publishing)
@@ -8,7 +8,7 @@ description: Pre-publication security gate for pages.lugui.ai — what must NEVE
 A published page lives on the **public internet** at `pages.lugui.ai/<slug>`,
 served by CloudFront with no auth in front of it. Treat every byte as world-
 readable forever. Review the HTML against this list before calling
-`/lugui-publish`. If anything matches, STOP and fix it first.
+`/lugui-ai:pages:publish`. If anything matches, STOP and fix it first.
 
 ## MUST NOT appear in the HTML
 
@@ -39,8 +39,8 @@ readable forever. Review the HTML against this list before calling
 ## Auth & access reality
 
 - Publishing requires a valid **personal access token** (`lgp_...`) obtained
-  via self-service web login (`/lugui-setup` → `{pages_api}/login`, sign in with
-  @lugui.ai) and saved to `~/.lugui/config.json`; the backend returns
+  via self-service web login (`/lugui-ai:setup` → `{pages_api}/login`, sign in
+  with @lugui.ai) and saved to `~/.lugui/config.json`; the backend returns
   `401`/`403` for a missing/invalid token or a token without permission. The
   token is a secret — never paste it or the contents of `~/.lugui/config.json`
   into chat.
@@ -54,9 +54,9 @@ readable forever. Review the HTML against this list before calling
 
 1. **You + this checklist** (catches PII, internal data, and secrets the regex
    misses). This is the important layer.
-2. **The publish gate** (the quick secret sanity check in `/lugui-publish` plus
-   the backend) re-scans for the secret patterns above. It is a backstop, not a
-   substitute for review.
+2. **The publish gate** (the quick secret sanity check in `/lugui-ai:pages:publish`
+   plus the backend) re-scans for the secret patterns above. It is a backstop,
+   not a substitute for review.
 
 ## Go / no-go
 

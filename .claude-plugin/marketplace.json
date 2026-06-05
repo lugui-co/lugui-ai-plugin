@@ -10,9 +10,9 @@
   },
   "plugins": [
     {
-      "name": "lugui-cloud",
-      "source": "./plugins/lugui-cloud",
-      "description": "Generate on-brand, secret-scanned HTML and publish it to pages.lugui.ai via curl — token auth, no Python or libraries."
+      "name": "lugui-ai",
+      "source": "./plugins/lugui-ai",
+      "description": "Suíte de produtividade da Lugui no Claude Code — começando pela publicação de páginas em pages.lugui.ai."
     }
   ]
 }
