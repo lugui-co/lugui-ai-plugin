@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- TODO: troque o título e a descrição (a descrição aparece em previews/social) -->
+  <title>TODO: título da página · Lugui</title>
+  <meta name="description" content="TODO: resumo de 1 linha" />
+
+  <!-- Plus Jakarta Sans — a fonte oficial da Lugui (300–800) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ---------------------------------------------------------------
+       TOKENS — espelham skills/branding/tokens.css. Mantenha os nomes.
+       --------------------------------------------------------------- */
+    :root {
+      --lugui-dark: #2B4A42;
+      --lugui-lime: #D4F34A;
+      --lugui-cream: #EDE8DC;
+      --lugui-navy: #1A2332;
+      --lugui-sage: #5A7A70;
+      --lugui-white: #FFFFFF;
+      --lugui-text: #1A1A1A;
+      --lugui-muted: #5F6B68;
+      --lugui-border: #D9D4C7;
+      --lugui-border-strong: #B5AE9A;
+      --lugui-danger: #B8412A;
+      --lugui-warn: #C7861B;
+      --lugui-success: #3F7A4A;
+      --lugui-premise: #F4EFD8;
+      --lugui-soft: #F7F4EA;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --shadow-sm: 0 1px 2px rgba(26, 35, 50, .04);
+      --shadow-md: 0 4px 14px rgba(26, 35, 50, .06);
+      --shadow-lg: 0 12px 32px rgba(26, 35, 50, .10);
+      --t-fast: .15s;
+      --t-base: .25s;
+      --lugui-font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --lugui-content-narrow: 880px;
+      --lugui-focus-ring: 0 0 0 3px rgba(212, 243, 74, .35);
+    }
+
+    /* ---------------------------------------------------------------
+       BASE — fundo cream (NUNCA branco puro chapado), texto antialias.
+       --------------------------------------------------------------- */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--lugui-font-sans);
+      font-size: 15px;
+      line-height: 1.55;
+      color: var(--lugui-text);
+      background: var(--lugui-cream);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.01em; color: var(--lugui-dark); }
+    p { margin: 0; }
+    a { color: var(--lugui-dark); }
+
+    .container { max-width: var(--lugui-content-narrow); margin: 0 auto; padding: 48px 24px 96px; }
+    .eyebrow { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--lugui-muted); font-weight: 600; }
+    .muted { color: var(--lugui-muted); }
+    .stack > * + * { margin-top: 20px; }
+
+    /* ---------------------------------------------------------------
+       HEADER — wordmark "lugui." com o ponto lime (a assinatura).
+       --------------------------------------------------------------- */
+    .appbar { position: sticky; top: 0; z-index: 30; background: var(--lugui-white); border-bottom: 1px solid var(--lugui-border); }
+    .appbar__inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; gap: 24px; padding: 14px 24px; }
+    .brand { display: flex; align-items: center; font-weight: 800; font-size: 20px; letter-spacing: -.02em; color: var(--lugui-dark); text-decoration: none; }
+    .brand__dot { color: var(--lugui-lime); }
+    .appbar nav { display: flex; gap: 4px; margin-left: auto; }
+    .appbar nav a { padding: 8px 14px; border-radius: 8px; text-decoration: none; color: var(--lugui-muted); font-weight: 500; font-size: 14px; transition: background var(--t-fast), color var(--t-fast); }
+    .appbar nav a:hover { background: var(--lugui-soft); color: var(--lugui-dark); }
+    .appbar nav a.is-active { background: var(--lugui-dark); color: var(--lugui-lime); }
+
+    /* ---------------------------------------------------------------
+       HERO — destaque com <em> sobre fundo lime (uso parcimonioso!).
+       --------------------------------------------------------------- */
+    .hero { margin-bottom: 40px; }
+    .hero h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.1; margin: 10px 0 12px; }
+    .hero h1 em { font-style: normal; background: var(--lugui-lime); padding: 0 8px; border-radius: 4px; }
+    .hero p { color: var(--lugui-muted); font-size: 16px; max-width: 60ch; }
+
+    /* ---------------------------------------------------------------
+       CARD / CALLOUT / BOTÕES
+       --------------------------------------------------------------- */
+    .card { background: var(--lugui-white); border: 1px solid var(--lugui-border); border-radius: var(--radius-lg); padding: 32px 36px; }
+    .card h2 { font-size: 22px; margin-bottom: 8px; }
+    .callout { padding: 16px 20px; background: var(--lugui-premise); border-left: 3px solid var(--lugui-lime); border-radius: 6px; font-size: 14px; line-height: 1.55; }
+    .callout strong { color: var(--lugui-dark); }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; font-family: inherit; font-size: 14px; font-weight: 600; border-radius: 8px; border: 1px solid transparent; cursor: pointer; text-decoration: none; transition: transform .08s ease, background var(--t-fast), border-color var(--t-fast), color var(--t-fast); }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { background: var(--lugui-dark); color: var(--lugui-lime); }
+    .btn-primary:hover { background: var(--lugui-navy); }
+    .btn-secondary { background: var(--lugui-white); color: var(--lugui-dark); border-color: var(--lugui-border-strong); }
+    .btn-secondary:hover { border-color: var(--lugui-dark); }
+    .btn:focus-visible { outline: none; box-shadow: var(--lugui-focus-ring); }
+
+    .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+    /* ---------------------------------------------------------------
+       FOOTER
+       --------------------------------------------------------------- */
+    .site-footer { border-top: 1px solid var(--lugui-border); }
+    .site-footer__inner { max-width: var(--lugui-content-narrow); margin: 0 auto; padding: 24px; color: var(--lugui-muted); font-size: 13px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER GLOBAL -->
+  <header class="appbar">
+    <div class="appbar__inner">
+      <a class="brand" href="/">lugui<span class="brand__dot">.</span></a>
+      <nav>
+        <!-- TODO: ajuste/remova os links -->
+        <a class="is-active" href="#conteudo">Visão geral</a>
+        <a href="#detalhes">Detalhes</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- HERO -->
+    <section class="hero" id="conteudo">
+      <div class="eyebrow">TODO: contexto · Lugui</div>
+      <!-- O <em> com fundo lime é a assinatura visual. Use UMA vez por hero. -->
+      <h1>TODO: título principal com um <em>destaque</em></h1>
+      <p>TODO: subtítulo / proposta de valor em 1–2 frases, claro e direto.</p>
+      <div class="row" style="margin-top:20px">
+        <a class="btn btn-primary" href="#detalhes">TODO: ação principal</a>
+        <a class="btn btn-secondary" href="#">TODO: ação secundária</a>
+      </div>
+    </section>
+
+    <!-- SEÇÃO / CARD -->
+    <section class="stack" id="detalhes">
+      <div class="card stack">
+        <h2>TODO: título da seção</h2>
+        <p class="muted">TODO: parágrafo de apoio. Mantenha frases curtas e tom acolhedor.</p>
+        <div class="callout">
+          <strong>Dica:</strong> TODO — use o callout para premissas, avisos ou
+          orientações importantes. Fundo premise + barra lime à esquerda.
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <span>lugui<span class="brand__dot" style="color:var(--lugui-lime)">.</span> — TODO: nota de rodapé / ano</span>
+      <span>TODO: link ou contato</span>
+    </div>
+  </footer>
+
+</body>
+</html>

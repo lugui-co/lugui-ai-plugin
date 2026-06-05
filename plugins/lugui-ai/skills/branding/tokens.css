@@ -1,0 +1,54 @@
+/* =====================================================================
+   LUGUI · Design Tokens
+   Source of truth, extracted from the real "Implantação · Lugui" page.
+   Copy this :root into any page you generate for pages.lugui.ai, or
+   @import it. Keep the token NAMES; only the brand owner changes values.
+   ===================================================================== */
+:root {
+  /* --- Brand colors --- */
+  --lugui-dark: #2B4A42;          /* deep green — structure, headers, primary surfaces, text on cream */
+  --lugui-lime: #D4F34A;          /* signature accent — CTAs, highlights, active state. USE SPARINGLY */
+  --lugui-cream: #EDE8DC;         /* default page background (never flat pure white) */
+  --lugui-navy: #1A2332;          /* darkest tone — primary hover, deep contrast */
+  --lugui-sage: #5A7A70;          /* muted green — secondary accents, hover hints */
+  --lugui-white: #FFFFFF;         /* card / elevated surfaces (on top of cream) */
+  --lugui-text: #1A1A1A;          /* body text */
+  --lugui-muted: #5F6B68;         /* secondary text, labels, hints */
+  --lugui-border: #D9D4C7;        /* default borders / dividers */
+  --lugui-border-strong: #B5AE9A; /* stronger borders, dashed empty/file inputs */
+
+  /* --- Status colors --- */
+  --lugui-danger: #B8412A;        /* errors, required marks, destructive */
+  --lugui-warn: #C7861B;          /* warnings, in-progress */
+  --lugui-success: #3F7A4A;       /* success, sent/confirmed */
+
+  /* --- Tinted backgrounds --- */
+  --lugui-premise: #F4EFD8;       /* premise / locked / read-only fields, callout bg */
+  --lugui-soft: #F7F4EA;          /* soft neutral fill — hovers, table headers, chips */
+
+  /* --- Radius --- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* --- Shadows (tinted with navy, never neutral grey) --- */
+  --shadow-sm: 0 1px 2px rgba(26, 35, 50, .04);
+  --shadow-md: 0 4px 14px rgba(26, 35, 50, .06);
+  --shadow-lg: 0 12px 32px rgba(26, 35, 50, .10);
+
+  /* --- Transitions --- */
+  --t-fast: .15s;
+  --t-base: .25s;
+
+  /* --- Typography --- */
+  --lugui-font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --lugui-font-mono: ui-monospace, "SF Mono", Monaco, "Cascadia Code", monospace;
+
+  /* --- Layout --- */
+  --lugui-content-max: 1280px;    /* full app width */
+  --lugui-content-narrow: 880px;  /* reading/form width */
+
+  /* --- Focus ring (lime glow over dark border) --- */
+  --lugui-focus-ring: 0 0 0 3px rgba(212, 243, 74, .35);
+}

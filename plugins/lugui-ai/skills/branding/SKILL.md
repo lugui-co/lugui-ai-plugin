@@ -1,159 +1,198 @@
 ---
 name: branding
-description: Lugui brand tokens, typography, voice and a copyable on-brand HTML/CSS base template. Use whenever generating HTML/pages that will be published to pages.lugui.ai so the output looks like Lugui, not generic AI output.
+description: Lugui's real design system — Plus Jakarta Sans, the cream/deep-green palette with lime as the signature accent, and component patterns extracted from a production Lugui page. Use whenever generating HTML/pages for pages.lugui.ai so the output looks unmistakably Lugui, not generic AI output.
 ---
 
 # Lugui Branding
 
-Apply this whenever you generate an HTML page destined for `pages.lugui.ai`.
-The goal: pages should immediately read as **Lugui** — clean, trustworthy,
-modern (Lugui is a real-estate / rentals fintech, B2B + consumer facing).
+This skill is the **design system for any page you generate** for
+`/lugui-ai:pages:publish`. It was extracted from a real production Lugui page
+("Implantação · Lugui"), so following it makes output look like Lugui — warm,
+structured, fintech-for-real-estate — and avoids generic "AI slop".
 
-> **TODO: preencher com o brand guide oficial.** The exact hex values,
-> fonts and logo asset below are placeholders. Confirm them against the
-> official Lugui brand guide and replace every `/* TODO */` before treating a
-> page as production-final. Until then, the structure is correct and safe to
-> ship internally.
+Two companion files live next to this one:
 
-## Design tokens (CSS custom properties)
+- **`tokens.css`** — the full `:root` (colors, radius, shadow, transitions,
+  fonts). The source of truth. Copy/`@import` it.
+- **`template.html`** — a clean, on-brand starting page (header + hero + card +
+  footer) wired to the tokens. **Start every new page from this.**
 
-```css
-:root {
-  /* Colors — TODO: confirmar hex oficiais com o brand guide */
-  --lugui-primary: #1a1a2e;        /* TODO: cor primaria de marca */
-  --lugui-accent: #00d1b2;         /* TODO: cor de destaque/CTA */
-  --lugui-bg: #ffffff;             /* fundo padrao */
-  --lugui-surface: #f5f6fa;        /* cards / superficies elevadas */
-  --lugui-text: #1a1a2e;           /* texto principal */
-  --lugui-text-muted: #5b5f6e;     /* texto secundario */
-  --lugui-border: #e3e5ec;         /* divisores / contornos */
-  --lugui-success: #2bb673;
-  --lugui-warning: #f5a623;
-  --lugui-danger:  #e2483d;
+## The feel in one line
 
-  /* Typography — TODO: confirmar familia tipografica oficial */
-  --lugui-font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --lugui-font-display: var(--lugui-font-sans); /* TODO: fonte de display, se houver */
+Cream paper, deep forest green for structure, and a single electric **lime**
+accent used like a highlighter. Confident, calm, human. Never neon-everywhere,
+never flat white, never purple-gradient SaaS.
 
-  /* Spacing scale (4px base) */
-  --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem;
-  --space-4: 1rem;    --space-6: 1.5rem; --space-8: 2rem;
-  --space-12: 3rem;   --space-16: 4rem;
+## Palette (and when to use each)
 
-  /* Radius & shadow */
-  --radius: 12px;
-  --radius-sm: 8px;
-  --shadow-sm: 0 1px 2px rgba(16, 18, 35, 0.06);
-  --shadow-md: 0 6px 24px rgba(16, 18, 35, 0.10);
+| Token | Hex | Use it for |
+|---|---|---|
+| `--lugui-dark` | `#2B4A42` | Structure: headers, primary buttons, dark cards, headings, text on cream. The workhorse. |
+| `--lugui-lime` | `#D4F34A` | **Signature accent — sparingly.** Primary CTA text, the `lugui.` dot, active nav, one hero highlight, progress fill, focus glow. If everything is lime, nothing is. |
+| `--lugui-cream` | `#EDE8DC` | The default **page background**. Pages sit on cream paper, not white. |
+| `--lugui-white` | `#FFFFFF` | Elevated surfaces only — cards, tables, inputs — floating on the cream. |
+| `--lugui-navy` | `#1A2332` | Deepest tone: primary-button hover, max contrast, shadow tint. |
+| `--lugui-sage` | `#5A7A70` | Muted green for soft secondary accents / hover hints. |
+| `--lugui-text` | `#1A1A1A` | Body copy. |
+| `--lugui-muted` | `#5F6B68` | Secondary text, labels, hints, eyebrows. |
+| `--lugui-border` | `#D9D4C7` | Default borders & dividers (warm, never cold grey). |
+| `--lugui-border-strong` | `#B5AE9A` | Stronger/dashed borders (secondary buttons, file inputs, empty states). |
+| `--lugui-premise` | `#F4EFD8` | Read-only / locked fields, callout background. |
+| `--lugui-soft` | `#F7F4EA` | Soft neutral fill: hovers, table headers, chips, badges. |
+| `--lugui-danger` | `#B8412A` | Errors, required `*`, destructive. |
+| `--lugui-warn` | `#C7861B` | Warnings, in-progress. |
+| `--lugui-success` | `#3F7A4A` | Success, sent/confirmed. |
 
-  /* Layout */
-  --content-max: 64rem;
-}
+Borders and shadows are **warm/navy-tinted**, never neutral grey. Shadows are
+soft and low: `--shadow-sm/md/lg` use `rgba(26,35,50,…)`.
+
+## Typography
+
+- **Plus Jakarta Sans** for everything (weights 300–800), loaded from Google
+  Fonts. Mono is `ui-monospace, "SF Mono", Monaco, monospace` (tokens, URLs).
+- Base body: `15px`, line-height `1.55`, color `--lugui-text` on cream.
+- Headings: weight `700`, `letter-spacing: -.01em`, color `--lugui-dark`.
+- Scale seen in the product:
+  - h1 / page title: `clamp(28px, 4vw, 38–40px)`, line-height `1.1`.
+  - section title (`.block__title`, modal `h3`): `22px`.
+  - card/empty title: `18px`.
+  - body: `15px`; secondary/`small`: `13px`; hints: `12px`.
+  - KPI value: `32px` weight `800`, `letter-spacing: -.02em`.
+- **Eyebrow** pattern (recurring): `11px`, `letter-spacing: .14em`,
+  `text-transform: uppercase`, weight `600`, color `--lugui-muted`. Use it
+  above titles for context ("CUSTOMER SUCCESS · LUGUI").
+
+## Logo / wordmark
+
+The logo is **text, not an image**: the lowercase wordmark `lugui` followed by a
+**lime period** — the dot is the brand signature.
+
+```html
+<a class="brand" href="/">lugui<span class="brand__dot">.</span></a>
 ```
+```css
+.brand { font-weight: 800; font-size: 20px; letter-spacing: -.02em; color: var(--lugui-dark); text-decoration: none; }
+.brand__dot { color: var(--lugui-lime); }
+```
+On dark backgrounds the wordmark turns cream and the dot stays lime. Don't
+recolor, distort, or add effects to it.
+
+## Components (use these snippets, all token-driven)
+
+### Buttons
+```css
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 18px; font:600 14px/1 var(--lugui-font-sans); border-radius:8px; border:1px solid transparent; cursor:pointer; transition: transform .08s ease, background var(--t-fast), border-color var(--t-fast); }
+.btn:active { transform: translateY(1px); }
+.btn-primary   { background: var(--lugui-dark); color: var(--lugui-lime); }   /* lime ON green = the CTA */
+.btn-primary:hover { background: var(--lugui-navy); }
+.btn-secondary { background: var(--lugui-white); color: var(--lugui-dark); border-color: var(--lugui-border-strong); }
+.btn-secondary:hover { border-color: var(--lugui-dark); }
+.btn-sm { padding:6px 12px; font-size:13px; border-radius:6px; }  .btn-lg { padding:14px 24px; font-size:15px; }
+```
+The hero CTA is **lime text on deep green** — that pairing is the most "Lugui"
+thing on the page. Use one primary button per view.
+
+### Card
+```css
+.card { background: var(--lugui-white); border: 1px solid var(--lugui-border); border-radius: var(--radius-lg); padding: 24px; }
+.card--dark { background: var(--lugui-dark); color: var(--lugui-cream); border-color: transparent; }  /* closing/CTA cards */
+.card--hover:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }  /* clickable cards */
+```
+
+### Badge / status pill
+```css
+.badge { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; font:700 11px/1 var(--lugui-font-sans); letter-spacing:.06em; text-transform:uppercase; border-radius:999px; background: var(--lugui-soft); color: var(--lugui-dark); }
+.badge--success { background:#E0EDDD; color: var(--lugui-success); }
+.badge--warn    { background:#FBE9C5; color: var(--lugui-warn); }
+.badge--danger  { background:#F5D6CE; color: var(--lugui-danger); }
+.badge--accent  { background: var(--lugui-lime); color: var(--lugui-dark); }   /* e.g. "revisado" */
+```
+
+### Callout (premise / important note)
+```css
+.callout { padding:16px 20px; background: var(--lugui-premise); border-left: 3px solid var(--lugui-lime); border-radius:6px; font-size:14px; line-height:1.55; }
+.callout strong { color: var(--lugui-dark); }
+```
+A premise/important inline highlight is a **lime pill** (`.premise-badge`:
+lime bg, dark text, uppercase 10px) — reuse the lime sparingly here too.
+
+### Table
+```css
+.table-wrap { background: var(--lugui-white); border:1px solid var(--lugui-border); border-radius: var(--radius-lg); overflow:hidden; }
+table.tbl { width:100%; border-collapse:collapse; }
+table.tbl th { padding:14px 18px; text-align:left; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--lugui-muted); font-weight:600; background: var(--lugui-soft); border-bottom:1px solid var(--lugui-border); }
+table.tbl td { padding:14px 18px; font-size:14px; border-bottom:1px solid var(--lugui-border); }
+table.tbl tbody tr:hover { background: var(--lugui-soft); }
+```
+
+### Inputs (when a page needs a form)
+```css
+input, select, textarea { width:100%; padding:10px 12px; font:14px var(--lugui-font-sans); color: var(--lugui-text); background: var(--lugui-white); border:1px solid var(--lugui-border); border-radius: var(--radius-sm); transition: border-color var(--t-fast), box-shadow var(--t-fast); }
+input:focus, select:focus, textarea:focus { outline:none; border-color: var(--lugui-dark); box-shadow: var(--lugui-focus-ring); }  /* lime glow */
+```
+
+## Layout & spacing
+
+- Sticky white **appbar** (wordmark left, nav right) over a cream body.
+- Content widths: full app `1280px`; reading/forms `880px`. Center with
+  `margin: 0 auto`.
+- Generous vertical rhythm: page container `padding: 32–48px 24px 96px`; cards
+  `24–36px`. Use `.stack > * + * { margin-top: 12–20px }` for vertical flow and
+  CSS grid (`grid-2/3/4`, gap `16px`) for columns — collapse to 1 column under
+  ~880px.
+- Hero signature: an `<h1>` with one `<em>` whose `font-style` is reset and that
+  gets a **lime background highlight** (`background: var(--lugui-lime); padding:
+  0 8px; border-radius: 4px`). One per page.
+
+## Radius & shadows
+
+- Radius: `sm 6px` (inputs/pills-of-text), `md 10px` (small cards/inputs),
+  `lg 16px` (cards/tables/modals), `xl 24px` (large feature blocks). Pills use
+  `999px`.
+- Shadows: low and navy-tinted (`--shadow-sm/md/lg`). Cards are usually flat
+  (border only); reserve shadow for hover, modals, toasts, floating bars.
+- Transitions: `--t-fast .15s` for hovers, `--t-base .25s` for expand/collapse.
 
 ## Voice & tone
 
-- **Português brasileiro** por padrão (público interno e clientes BR). English
-  só se a página for explicitamente internacional.
-- Claro, direto, confiável — é uma fintech imobiliária. Sem jargão técnico em
-  páginas voltadas a cliente/CEO.
-- Confiança sem hype: evite superlativos vazios ("revolucionário"); prefira
-  benefícios concretos.
-- CTAs com verbo de ação no imperativo ("Começar agora", "Ver proposta").
+Inferred from the product copy (a client onboarding form): **professional,
+clear, and genuinely warm — plain Brazilian Portuguese, zero jargon.**
 
-## Logo
+- Default language **pt-BR**; talk *to* the person ("Você já pode...", "Reserve
+  um tempo para preencher com calma").
+- Reassuring and low-pressure: "Não se preocupe em deixar perfeito de primeira",
+  "a CS revisa com vocês", "Se não se aplica, escreva 'Não se aplica' e siga".
+- Concrete over hype. Short sentences. Use `—` em dashes and a light human touch
+  ("— Equipe Lugui"). Sign off as a partner, not a vendor.
+- No tech jargon on client/CEO-facing pages.
 
-- TODO: incluir o asset oficial do logo (SVG inline de preferência) e a área de
-  respiro mínima. Enquanto não houver, use o wordmark textual abaixo no header.
-- Não distorça, não recolora fora da paleta, não aplique sombra no logo.
+## Rules — do / don't
 
-## Base HTML template (copiável)
+**Do**
+- Start from `template.html`; pull values from `tokens.css`. Keep token names.
+- Always **Plus Jakarta Sans**; cream background; lime as a *rare* accent.
+- Lead with hierarchy: clear eyebrow → big h1 → muted subtitle. Strong contrast,
+  intentional spacing, warm borders, one focal CTA.
+- Self-contained single file (inline `<style>`, no external CSS/JS deps beyond
+  the Google Fonts link). Keep it accessible (semantic tags, `alt`, focus ring).
+- Sweat the details: the lime dot on the wordmark, the `.14em` eyebrow tracking,
+  the navy-tinted shadows. Those small things are what read as "Lugui".
 
-Use this as the starting skeleton. It is self-contained (no external requests),
-responsive, accessible, and uses the tokens above. Replace the placeholder
-content. Keep CSS inlined in `<style>` so the page is a single deployable file.
+**Don't**
+- ❌ Pure flat white pages — Lugui sits on **cream**.
+- ❌ Lime everywhere — it's a highlighter, not a fill. One or two hits per view.
+- ❌ AI-slop tells: purple/blue gradients, Inter/Arial/system-default look,
+  emoji-as-icons everywhere, generic centered "hero + 3 cards" with no point,
+  neutral grey borders/shadows, cold corporate copy.
+- ❌ Image logos or recolored wordmarks — it's the text `lugui` + lime dot.
+- ❌ Tiny cramped type or weak hierarchy.
 
-```html
-<!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TODO: titulo da pagina</title>
-  <meta name="description" content="TODO: resumo de 1 linha (usado em previews)" />
-  <style>
-    :root {
-      --lugui-primary: #1a1a2e;   /* TODO brand guide */
-      --lugui-accent: #00d1b2;    /* TODO brand guide */
-      --lugui-bg: #ffffff;
-      --lugui-surface: #f5f6fa;
-      --lugui-text: #1a1a2e;
-      --lugui-text-muted: #5b5f6e;
-      --lugui-border: #e3e5ec;
-      --lugui-font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      --radius: 12px;
-      --shadow-md: 0 6px 24px rgba(16, 18, 35, 0.10);
-      --content-max: 64rem;
-    }
-    * { box-sizing: border-box; }
-    html { -webkit-text-size-adjust: 100%; }
-    body {
-      margin: 0;
-      font-family: var(--lugui-font-sans);
-      color: var(--lugui-text);
-      background: var(--lugui-bg);
-      line-height: 1.6;
-    }
-    .container { max-width: var(--content-max); margin: 0 auto; padding: 0 1.25rem; }
-    header.site {
-      border-bottom: 1px solid var(--lugui-border);
-      padding: 1rem 0;
-    }
-    .brand { font-weight: 700; font-size: 1.25rem; color: var(--lugui-primary); letter-spacing: -0.01em; }
-    main { padding: 3rem 0; }
-    h1 { font-size: clamp(1.75rem, 4vw, 2.75rem); line-height: 1.15; margin: 0 0 1rem; letter-spacing: -0.02em; }
-    p.lead { font-size: 1.125rem; color: var(--lugui-text-muted); max-width: 48ch; }
-    .card {
-      background: var(--lugui-surface);
-      border: 1px solid var(--lugui-border);
-      border-radius: var(--radius);
-      padding: 1.5rem;
-      box-shadow: var(--shadow-md);
-    }
-    .btn {
-      display: inline-block; font-weight: 600; text-decoration: none;
-      background: var(--lugui-accent); color: #06302a;
-      padding: 0.75rem 1.25rem; border-radius: var(--radius);
-    }
-    .btn:focus-visible { outline: 3px solid var(--lugui-primary); outline-offset: 2px; }
-    footer.site { border-top: 1px solid var(--lugui-border); padding: 1.5rem 0; color: var(--lugui-text-muted); font-size: 0.875rem; }
-    @media (prefers-color-scheme: dark) {
-      :root { --lugui-bg: #0f1020; --lugui-surface: #16182b; --lugui-text: #f2f3f7; --lugui-text-muted: #a7abbd; --lugui-border: #2a2d44; }
-    }
-  </style>
-</head>
-<body>
-  <header class="site">
-    <div class="container">
-      <span class="brand">Lugui</span> <!-- TODO: trocar por <img> do logo oficial -->
-    </div>
-  </header>
-  <main>
-    <div class="container">
-      <h1>TODO: titulo principal</h1>
-      <p class="lead">TODO: subtitulo / proposta de valor em 1-2 frases.</p>
-      <p><a class="btn" href="#">TODO: chamada para acao</a></p>
-    </div>
-  </main>
-  <footer class="site">
-    <div class="container">© Lugui — TODO: ano / aviso legal se necessario.</div>
-  </footer>
-</body>
-</html>
-```
+## Instruction for Claude
 
-## Rules of use
-
-- One self-contained file; no external scripts/fonts/CDNs (see code-best-practices).
-- Never inline real data, secrets or client PII (see security-checklist).
-- Keep the token names; only change values to match the official brand guide.
+When generating an HTML page for `/lugui-ai:pages:publish`:
+1. **Start from `template.html`** and bring in `tokens.css` (inline the `:root`).
+2. Use the component snippets above; don't invent off-brand styles.
+3. Background = cream; structure = deep green; **one** lime accent moment.
+4. Write copy in warm, plain pt-BR per the voice section.
+5. Then hand off to the `security-checklist` and `code-best-practices` skills
+   before publishing.
