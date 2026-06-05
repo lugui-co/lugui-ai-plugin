@@ -1,6 +1,6 @@
 ---
 name: branding
-description: Lugui's real design system — Plus Jakarta Sans, the cream/deep-green palette with lime as the signature accent, and component patterns extracted from a production Lugui page. Use whenever generating HTML/pages for pages.lugui.ai so the output looks unmistakably Lugui, not generic AI output.
+description: Lugui's real design system (Plus Jakarta Sans + cream/deep-green palette + lime accent, extracted from a production Lugui page). MUST be loaded BEFORE generating or editing ANY HTML destined for pages.lugui.ai (e.g. for /lugui-ai:pages:publish). Provides the canonical tokens, the base template, and rules so output is unmistakably Lugui and never generic AI slop.
 ---
 
 # Lugui Branding
@@ -9,6 +9,33 @@ This skill is the **design system for any page you generate** for
 `/lugui-ai:pages:publish`. It was extracted from a real production Lugui page
 ("Implantação · Lugui"), so following it makes output look like Lugui — warm,
 structured, fintech-for-real-estate — and avoids generic "AI slop".
+
+## ⛔ CANONICAL TOKENS — copy verbatim from `tokens.css`, NEVER invent names/values
+
+Generating a page means: **start from `template.html`** and use **only** these
+token names, with these exact values (full list in `tokens.css` — read it if
+unsure, never guess):
+
+```
+--lugui-dark: #2B4A42      --lugui-text: #1A1A1A       --lugui-premise: #F4EFD8
+--lugui-lime: #D4F34A      --lugui-muted: #5F6B68      --lugui-soft: #F7F4EA
+--lugui-cream: #EDE8DC     --lugui-border: #D9D4C7     --lugui-danger: #B8412A
+--lugui-navy: #1A2332      --lugui-border-strong: #B5AE9A   --lugui-warn: #C7861B
+--lugui-sage: #5A7A70      --lugui-white: #FFFFFF      --lugui-success: #3F7A4A
+```
+Font: **Plus Jakarta Sans** via Google Fonts (`var(--lugui-font-sans)`); mono
+`var(--lugui-font-mono)`. Radius `--radius-sm/md/lg/xl`, shadows
+`--shadow-sm/md/lg`, transitions `--t-fast/--t-base`, focus `--lugui-focus-ring`.
+
+**These do NOT exist — using them is the bug this skill prevents:**
+`--lugui-primary`, `--lugui-accent`, `--lugui-bg`, `--lugui-secondary`, or any
+generic grey such as `#1a1a2e` / `#f5f6fa`. There is no `var(--lugui-font-sans)`
+without also loading Plus Jakarta Sans from Google Fonts. If you find yourself
+inventing a token name, STOP and read `tokens.css`.
+
+**Hard rule:** start EVERY page from `template.html` (it already wires the
+tokens, the font, the cream background, and the `lugui.` wordmark). Don't write
+markup from scratch.
 
 Two companion files live next to this one:
 

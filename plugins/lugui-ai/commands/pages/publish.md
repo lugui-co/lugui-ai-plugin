@@ -18,8 +18,8 @@ API, and report the result. The file to publish is in `$ARGUMENTS`.
 2. **Load the security skill.** Read and apply `security-checklist/SKILL.md`.
 
 3. **Resolve the HTML file.** Use `$ARGUMENTS` as the path. If empty, ask the
-   user which file (or offer to generate one first with the **branding** and
-   **code-best-practices** skills). Confirm the file exists and read its
+   user which file (or offer to generate one first — if you generate it, you
+   MUST follow the branding step below). Confirm the file exists and read its
    contents.
 
 4. **Ask the user: "permanente ou efêmera?"**
@@ -48,7 +48,40 @@ API, and report the result. The file to publish is in `$ARGUMENTS`.
 
    If any match, STOP, tell the user exactly what to remove, and do not send.
 
-6. **Build the JSON body in a temp file (do NOT interpolate the HTML inline).**
+6. **🔒 BRANDING IS MANDATORY — apply it BEFORE publishing.**
+
+   **If you generated OR edited the HTML in this session, it is OBRIGATÓRIO to
+   apply the Lugui branding BEFORE publishing.** Do NOT rely on automatic skill
+   activation (it is unreliable). Explicitly:
+
+   - **Load the `lugui-ai:branding` skill** (read `skills/branding/SKILL.md`).
+   - **Start from `skills/branding/template.html`** instead of writing markup
+     from scratch.
+   - **Use the real tokens from `skills/branding/tokens.css`** (inline the
+     `:root`). Background must be **cream**.
+   - **Load Plus Jakarta Sans** via Google Fonts:
+     `https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap`
+   - **NEVER invent tokens.** There is no `--lugui-primary`, `--lugui-accent`,
+     `--lugui-bg`, or generic greys like `#1a1a2e`/`#f5f6fa`. The correct names
+     and values are exactly: `--lugui-dark #2B4A42`, `--lugui-lime #D4F34A`,
+     `--lugui-cream #EDE8DC`, `--lugui-navy #1A2332`, `--lugui-sage #5A7A70`,
+     `--lugui-text #1A1A1A`, `--lugui-muted #5F6B68`, `--lugui-border #D9D4C7`,
+     plus status/tints — see `tokens.css` for the complete list. If you don't
+     remember a value, READ `tokens.css`; do not guess.
+
+   **Brand sanity-check (run right before the upload, every time):** confirm the
+   HTML you are about to send (a) loads Plus Jakarta Sans (a
+   `fonts.googleapis.com` link containing `Plus+Jakarta+Sans`), and (b) uses the
+   real tokens `--lugui-dark` / `--lugui-lime` / `--lugui-cream` with a cream
+   background.
+   - If it PASSES → continue to the JSON build.
+   - If it FAILS (e.g. a pre-existing off-brand file, or invented tokens) →
+     **STOP. Do NOT publish a non-branded page silently.** Tell the user the
+     page is off-brand and offer to restyle it to the Lugui standard (template +
+     tokens + Plus Jakarta Sans) first. Only publish after it passes, or after
+     the user explicitly insists on publishing the file as-is.
+
+7. **Build the JSON body in a temp file (do NOT interpolate the HTML inline).**
    The HTML contains quotes and newlines, so escape it as a proper JSON string.
    Write the request body to a temp file, e.g. `/tmp/lugui-ai-publish.json`, with
    this shape:
@@ -68,7 +101,7 @@ API, and report the result. The file to publish is in `$ARGUMENTS`.
      the HTML correctly escaped as a JSON string value. `jq`/`python` are NOT
      required — you build the JSON yourself.
 
-7. **POST with curl, reading the body from the temp file:**
+8. **POST with curl, reading the body from the temp file:**
 
    ```bash
    curl -sS -w "\n%{http_code}" -X POST "<pages_api>/pages" \
@@ -80,7 +113,7 @@ API, and report the result. The file to publish is in `$ARGUMENTS`.
    The last line of output is the HTTP status code; everything before it is the
    JSON response body.
 
-8. **Report the result.** On **200/201**, parse the response JSON and show the
+9. **Report the result.** On **200/201**, parse the response JSON and show the
    public `url` (and `expires_at` if present, for ephemeral pages). Map errors:
    - **401 / 403** → invalid token or no permission → run `/lugui-ai:setup` to
      redo the web login and get a fresh token.
@@ -91,8 +124,8 @@ API, and report the result. The file to publish is in `$ARGUMENTS`.
      (ask for a different path) or the HTML is invalid (empty / not HTML /
      contains a secret) → fix and retry.
 
-9. **Clean up.** Remove the temp JSON file (`rm -f /tmp/lugui-ai-publish.json`) so
-   the HTML/body doesn't linger.
+10. **Clean up.** Remove the temp JSON file (`rm -f /tmp/lugui-ai-publish.json`)
+    so the HTML/body doesn't linger.
 
 ## Notes
 
