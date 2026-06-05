@@ -1,0 +1,11 @@
+{
+  "name": "lugui-cloud",
+  "version": "0.3.2",
+  "description": "Generate on-brand, secret-scanned HTML and publish it to a public pages.lugui.ai link via curl. Self-service web-login token auth, no Python, no libraries. Lugui internal use.",
+  "author": {
+    "name": "Lugui",
+    "url": "https://github.com/lugui-co"
+  },
+  "homepage": "https://github.com/lugui-co/lugui-ai-powered/tree/main/plugins/lugui-cloud",
+  "keywords": ["lugui", "pages", "publishing", "branding", "html", "curl"]
+}

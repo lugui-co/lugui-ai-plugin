@@ -1,0 +1,18 @@
+{
+  "name": "lugui-marketplace",
+  "owner": {
+    "name": "Lugui",
+    "url": "https://github.com/lugui-co"
+  },
+  "metadata": {
+    "description": "Internal Claude Code plugins for the Lugui team.",
+    "version": "0.2.0"
+  },
+  "plugins": [
+    {
+      "name": "lugui-cloud",
+      "source": "./plugins/lugui-cloud",
+      "description": "Generate on-brand, secret-scanned HTML and publish it to pages.lugui.ai via curl — token auth, no Python or libraries."
+    }
+  ]
+}
