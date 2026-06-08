@@ -1,6 +1,6 @@
 {
   "name": "lugui-ai",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Suíte de produtividade da Lugui no Claude Code — publica páginas on-brand em pages.lugui.ai, com dados (autenticado @lugui) e backoffices com links públicos de preenchimento por registro, sem código.",
   "author": {
     "name": "Lugui",

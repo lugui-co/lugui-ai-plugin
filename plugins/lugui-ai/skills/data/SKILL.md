@@ -1,6 +1,6 @@
 ---
 name: data
-description: Make a published Lugui page READ AND WRITE persistent data (lists, forms, dashboards, backoffices, onboarding flows) without any backend code. MUST be loaded whenever the user asks for a page that saves, shares, collects, or remembers data — including admin tools with public per-record fill links. Covers choosing the access pattern, creating the data "app", wiring lugui-data.js (authenticated AND login-free public fill), and dual-mode pages.
+description: Make a published Lugui page READ AND WRITE persistent data (lists, forms, dashboards, backoffices, onboarding flows) without any backend code. MUST be loaded before publishing ANY page that has a form, collects input, stores state, uses localStorage/sessionStorage, or needs to save/share/persist data — even if the user didn't explicitly say "salvar" (detect it from the page content). Triggers: formulário, cadastro, inscrição, salvar, enviar, persistir, compartilhar, backoffice, lista colaborativa, tracker, CRUD, dashboard. Covers choosing the access pattern (internal-authenticated vs backoffice + public per-record fill links), creating the data "app", wiring lugui-data.js (authenticated AND login-free public fill), and dual-mode pages — and replacing browser-only localStorage mocks with real shared persistence.
 ---
 
 # Lugui Data — data-backed pages

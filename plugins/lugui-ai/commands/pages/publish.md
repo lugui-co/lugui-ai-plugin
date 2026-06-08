@@ -81,7 +81,49 @@ API, and report the result. The file to publish is in `$ARGUMENTS`.
      tokens + Plus Jakarta Sans) first. Only publish after it passes, or after
      the user explicitly insists on publishing the file as-is.
 
-7. **Build the JSON body in a temp file (do NOT interpolate the HTML inline).**
+7. **🔒 PERSISTÊNCIA — detect it BEFORE publishing.**
+
+   This step fires by CONTENT, **even if the user never said "salvar"** — it
+   catches the vague case. Inspect the HTML you generated/edited for ANY sign of
+   state that ought to persist or be shared:
+
+   - a `<form>`, or inputs / `<textarea>` / `<select>` / checkboxes / radios /
+     `contenteditable` that hold meaningful state;
+   - any use of `localStorage` / `sessionStorage` as "persistence";
+   - intent words in the page or the user's request: **salvar, cadastro,
+     inscrição, formulário, enviar, compartilhar, persistir, backoffice, "cada
+     um vê", "todos veem", lista colaborativa, tracker, CRUD, dashboard que
+     lembra**.
+
+   If ANY of those is present, it is OBRIGATÓRIO to **STOP and ask the user
+   which pattern they want — do NOT publish a browser-only mock.**
+
+   - If the page uses `localStorage` / `sessionStorage` as its "persistence",
+     **warn explicitly**: *"isso só salva no navegador de quem abre — não
+     compartilha com ninguém e some quando a pessoa limpa o navegador. Quer
+     persistir de verdade no Lugui (compartilhado/durável)?"*
+   - Then ask the pattern (this mirrors the **`lugui-ai:data`** skill):
+     - **(a) Sem persistência** — a página é só estática/efêmera (nada a salvar)
+       → continue the normal publish. (Only choose this if there's genuinely no
+       state worth keeping.)
+     - **(b) Interna autenticada** — só @lugui (app ACL `private`/`shared`); a
+       página inteira exige login via `lugui.ensureAuth()`.
+     - **(c) Backoffice + link público** — o dono gerencia logado e gera links
+       públicos de preenchimento por registro (`#/p/<token>`, dual-mode).
+
+   - If the user picks **(b) or (c)**: **load the `lugui-ai:data` skill** and
+     follow it — create the app (`POST /apps` with the token from
+     `~/.lugui/config.json`, set `acl` and, for (c), `allow_public_fill:true`),
+     load `https://pages-api.coolify.lugui.ai/lugui-data.js`, and wire the page
+     with `lugui.data.*` (and `lugui.public.*` for the public `#/p/` route in
+     dual-mode). **Replace any `localStorage`/`sessionStorage` mock with real
+     persistence.** Only proceed to upload once persistence is ACTUALLY wired to
+     the Lugui data API — never publish a page that "persists" only in the
+     browser.
+
+   The brand sanity-check (step 6) still applies to the final, data-wired HTML.
+
+8. **Build the JSON body in a temp file (do NOT interpolate the HTML inline).**
    The HTML contains quotes and newlines, so escape it as a proper JSON string.
    Write the request body to a temp file, e.g. `/tmp/lugui-ai-publish.json`, with
    this shape:
@@ -101,7 +143,7 @@ API, and report the result. The file to publish is in `$ARGUMENTS`.
      the HTML correctly escaped as a JSON string value. `jq`/`python` are NOT
      required — you build the JSON yourself.
 
-8. **POST with curl, reading the body from the temp file:**
+9. **POST with curl, reading the body from the temp file:**
 
    ```bash
    curl -sS -w "\n%{http_code}" -X POST "<pages_api>/pages" \
@@ -113,7 +155,7 @@ API, and report the result. The file to publish is in `$ARGUMENTS`.
    The last line of output is the HTTP status code; everything before it is the
    JSON response body.
 
-9. **Report the result.** On **200/201**, parse the response JSON and show the
+10. **Report the result.** On **200/201**, parse the response JSON and show the
    public `url` (and `expires_at` if present, for ephemeral pages). Map errors:
    - **401 / 403** → invalid token or no permission → run `/lugui-ai:setup` to
      redo the web login and get a fresh token.
@@ -124,7 +166,7 @@ API, and report the result. The file to publish is in `$ARGUMENTS`.
      (ask for a different path) or the HTML is invalid (empty / not HTML /
      contains a secret) → fix and retry.
 
-10. **Clean up.** Remove the temp JSON file (`rm -f /tmp/lugui-ai-publish.json`)
+11. **Clean up.** Remove the temp JSON file (`rm -f /tmp/lugui-ai-publish.json`)
     so the HTML/body doesn't linger.
 
 ## Notes
