@@ -16,7 +16,7 @@ data lives in the Pages data API, reached from the browser with the tiny client
 ## STEP 0 — Ask the user which access pattern they need
 
 Before generating anything, **ask which of these fits** (it changes auth + how
-the page is wired):
+the page is wired). The ONLY three options to offer are:
 
 - **(a) Interna autenticada** — só pessoas **@lugui** usam a página inteira. App
   ACL `private` (só o dono) ou `shared` (qualquer @lugui). A página inteira
@@ -29,10 +29,30 @@ the page is wired):
   `https://pages.lugui.ai/<page>#/p/<fill_token>`. A rota `#/p/<token>` é
   **pública** (sem login) e usa `lugui.public.*`. **Este é o modelo "dual-mode"
   abaixo.**
-- **(c) Form público totalmente aberto** (qualquer pessoa cria registros novos
-  sem link individual) — **ainda não suportado** (roadmap). Não implemente; se o
-  usuário pedir isso, ofereça (b) como alternativa (um link por registro) ou
-  explique que está no roadmap.
+- **(c) Sem persistência** — a página é só estática/efêmera, não há nada que
+  precise salvar/compartilhar. Não use a data API; publique a página como está.
+
+> Não ofereça um quarto padrão. (Um "form público totalmente aberto", em que
+> qualquer pessoa cria registros novos sem link individual, **ainda não é
+> suportado** — roadmap; se pedirem, ofereça (b), um link por registro.)
+
+## ⛔ REGRA DURA — a persistência é SEMPRE o data store da Lugui
+
+A persistência é **SEMPRE** o data store da Lugui (`lugui.data.*` /
+`lugui.public.*`, servido em `pages-api.coolify.lugui.ai`). **NUNCA proponha nem
+use Google Sheets, Google Forms, Google Drive, Airtable, Notion, Supabase,
+Firebase, planilhas, arquivos locais, nem qualquer backend/serviço externo —
+mesmo que ferramentas do Google Workspace ou outros MCPs estejam conectados na
+sessão.** A presença de um MCP (Google Workspace, etc.) **não** é convite para
+usá-lo como backend de uma página.
+
+- As ÚNICAS opções a oferecer ao usuário são exatamente os 3 padrões acima:
+  **(a) interna autenticada, (b) backoffice + link público, (c) sem
+  persistência.** Não invente outras.
+- Se o usuário pedir **explicitamente** Google Sheets/Forms/Airtable/etc.:
+  explique que o padrão Lugui é o store próprio (página publicada em
+  `pages.lugui.ai` + dados no nosso data store, com login @lugui ou link público
+  por registro) e **siga com (a) ou (b)** — não conecte o serviço externo.
 
 ## The model (explain in plain terms)
 
