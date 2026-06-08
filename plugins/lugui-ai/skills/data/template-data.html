@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- TODO: troque título e descrição -->
+  <title>TODO: título da página · Lugui</title>
+  <meta name="description" content="TODO: resumo de 1 linha" />
+
+  <!-- Plus Jakarta Sans — fonte oficial da Lugui -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Client da data API (window.lugui). Zero deps. -->
+  <script src="https://pages-api.coolify.lugui.ai/lugui-data.js"></script>
+
+  <style>
+    /* TOKENS Lugui — espelham skills/branding/tokens.css. NÃO invente tokens. */
+    :root {
+      --lugui-dark: #2B4A42;
+      --lugui-lime: #D4F34A;
+      --lugui-cream: #EDE8DC;
+      --lugui-navy: #1A2332;
+      --lugui-sage: #5A7A70;
+      --lugui-white: #FFFFFF;
+      --lugui-text: #1A1A1A;
+      --lugui-muted: #5F6B68;
+      --lugui-border: #D9D4C7;
+      --lugui-border-strong: #B5AE9A;
+      --lugui-danger: #B8412A;
+      --lugui-success: #3F7A4A;
+      --lugui-premise: #F4EFD8;
+      --lugui-soft: #F7F4EA;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --shadow-md: 0 4px 14px rgba(26, 35, 50, .06);
+      --t-fast: .15s;
+      --lugui-font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --lugui-content-narrow: 880px;
+      --lugui-focus-ring: 0 0 0 3px rgba(212, 243, 74, .35);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: var(--lugui-font-sans); font-size: 15px; line-height: 1.55;
+      color: var(--lugui-text); background: var(--lugui-cream);
+      -webkit-font-smoothing: antialiased;
+    }
+    h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -.01em; color: var(--lugui-dark); }
+    p { margin: 0; }
+    .container { max-width: var(--lugui-content-narrow); margin: 0 auto; padding: 32px 24px 96px; }
+    .eyebrow { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--lugui-muted); font-weight: 600; }
+    .muted { color: var(--lugui-muted); }
+
+    /* Header com wordmark + estado de login */
+    .appbar { position: sticky; top: 0; z-index: 30; background: var(--lugui-white); border-bottom: 1px solid var(--lugui-border); }
+    .appbar__inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; gap: 16px; padding: 14px 24px; }
+    .brand { display: flex; align-items: center; font-weight: 800; font-size: 20px; letter-spacing: -.02em; color: var(--lugui-dark); text-decoration: none; }
+    .brand__dot { color: var(--lugui-lime); }
+    .auth { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--lugui-muted); }
+    .auth__email { font-weight: 600; color: var(--lugui-dark); }
+
+    .hero { margin: 8px 0 28px; }
+    .hero h1 { font-size: clamp(28px, 4vw, 38px); line-height: 1.1; margin: 10px 0 8px; }
+    .hero p { color: var(--lugui-muted); font-size: 16px; max-width: 60ch; }
+
+    .card { background: var(--lugui-white); border: 1px solid var(--lugui-border); border-radius: var(--radius-lg); padding: 24px; }
+    .card + .card { margin-top: 20px; }
+
+    /* Form */
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .field-label { font-size: 13px; font-weight: 600; color: var(--lugui-dark); }
+    input[type="text"], textarea {
+      width: 100%; padding: 10px 12px; font-family: inherit; font-size: 14px; color: var(--lugui-text);
+      background: var(--lugui-white); border: 1px solid var(--lugui-border); border-radius: var(--radius-sm);
+      transition: border-color var(--t-fast), box-shadow var(--t-fast);
+    }
+    textarea { min-height: 72px; resize: vertical; }
+    input:focus, textarea:focus { outline: none; border-color: var(--lugui-dark); box-shadow: var(--lugui-focus-ring); }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; font-family: inherit; font-size: 14px; font-weight: 600; border-radius: 8px; border: 1px solid transparent; cursor: pointer; text-decoration: none; transition: transform .08s ease, background var(--t-fast), border-color var(--t-fast); }
+    .btn:active { transform: translateY(1px); }
+    .btn:focus-visible { outline: none; box-shadow: var(--lugui-focus-ring); }
+    .btn-primary { background: var(--lugui-dark); color: var(--lugui-lime); }
+    .btn-primary:hover { background: var(--lugui-navy); }
+    .btn-secondary { background: var(--lugui-white); color: var(--lugui-dark); border-color: var(--lugui-border-strong); }
+    .btn-secondary:hover { border-color: var(--lugui-dark); }
+    .btn-sm { padding: 6px 12px; font-size: 13px; border-radius: 6px; }
+
+    /* Lista de itens */
+    .item { display: flex; gap: 12px; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid var(--lugui-border); }
+    .item:last-child { border-bottom: 0; }
+    .item__body { flex: 1; min-width: 0; }
+    .item__title { font-weight: 600; color: var(--lugui-dark); }
+    .item__meta { font-size: 12px; color: var(--lugui-muted); margin-top: 2px; }
+    .item__actions { display: flex; gap: 6px; }
+
+    .empty { text-align: center; padding: 40px 24px; color: var(--lugui-muted); }
+    .callout { padding: 14px 18px; background: var(--lugui-premise); border-left: 3px solid var(--lugui-lime); border-radius: 6px; font-size: 14px; }
+    .err { color: var(--lugui-danger); font-size: 13px; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <header class="appbar">
+    <div class="appbar__inner">
+      <a class="brand" href="#">lugui<span class="brand__dot">.</span></a>
+      <!-- Estado de login: mostra o email OU um botão "Entrar". -->
+      <div class="auth">
+        <span id="authEmail" class="auth__email" hidden></span>
+        <button id="loginBtn" class="btn btn-secondary btn-sm" hidden>Entrar com @lugui</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <section class="hero">
+      <div class="eyebrow">TODO: contexto · Lugui</div>
+      <h1>TODO: título</h1>
+      <p>TODO: descreva o que esta página guarda (ex.: "lista de tarefas do time").</p>
+    </section>
+
+    <!-- Mostrado só para quem NÃO está logado -->
+    <section id="loginGate" class="card" hidden>
+      <div class="callout">Faça login com sua conta <strong>@lugui.ai</strong> para ver e editar os dados.</div>
+      <p style="margin-top:14px"><button class="btn btn-primary" onclick="lugui.login()">Entrar</button></p>
+    </section>
+
+    <!-- App: só aparece depois do login -->
+    <div id="app" hidden>
+      <!-- Form de criação/edição -->
+      <section class="card">
+        <h2 id="formTitle">Adicionar</h2>
+        <p class="muted" style="margin:4px 0 16px">TODO: ajuste os campos ao seu caso.</p>
+        <form id="itemForm">
+          <input type="hidden" id="editId" value="" />
+          <div class="field">
+            <label class="field-label" for="fTitulo">Título</label>
+            <input type="text" id="fTitulo" placeholder="Ex.: Ligar para o cliente" required />
+          </div>
+          <div class="field">
+            <label class="field-label" for="fNota">Nota</label>
+            <textarea id="fNota" placeholder="Detalhes (opcional)"></textarea>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center">
+            <button type="submit" class="btn btn-primary" id="submitBtn">Salvar</button>
+            <button type="button" class="btn btn-secondary" id="cancelBtn" hidden>Cancelar</button>
+            <span id="formErr" class="err"></span>
+          </div>
+        </form>
+      </section>
+
+      <!-- Lista -->
+      <section class="card">
+        <h2>Itens</h2>
+        <div id="list"><div class="empty">Carregando…</div></div>
+      </section>
+    </div>
+
+  </main>
+
+  <script>
+  /* ===================================================================
+     CONFIG — preencha com o app_key (criado via skill lugui-ai:data) e
+     a collection que quiser.
+     =================================================================== */
+  const APP_KEY = "TODO-app-key";      // ex.: "lista-de-tarefas-x7k2"
+  const COLLECTION = "itens";          // ex.: "tarefas"
+
+  const $ = (id) => document.getElementById(id);
+
+  // --- Login UI ------------------------------------------------------
+  async function initAuth() {
+    const user = await lugui.me();          // { email } ou null (não lança)
+    if (user && user.email) {
+      $("authEmail").textContent = user.email;
+      $("authEmail").hidden = false;
+      $("loginBtn").hidden = true;
+      $("loginGate").hidden = true;
+      $("app").hidden = false;
+      return user.email;
+    }
+    // Não logado: mostra o portão de login (padrão "botão Entrar").
+    $("loginBtn").hidden = false;
+    $("loginGate").hidden = false;
+    $("app").hidden = true;
+    return null;
+  }
+  $("loginBtn").addEventListener("click", () => lugui.login());
+
+  // --- Render --------------------------------------------------------
+  async function render() {
+    const box = $("list");
+    try {
+      const items = await lugui.data.list(APP_KEY, COLLECTION, { limit: 200 });
+      if (!items.length) {
+        box.innerHTML = '<div class="empty">Nada por aqui ainda. Adicione o primeiro item acima.</div>';
+        return;
+      }
+      box.innerHTML = "";
+      for (const it of items) {
+        const d = it.data || {};              // campos do usuário vivem em .data
+        const row = document.createElement("div");
+        row.className = "item";
+        row.innerHTML = `
+          <div class="item__body">
+            <div class="item__title"></div>
+            <div class="item__meta"></div>
+          </div>
+          <div class="item__actions">
+            <button class="btn btn-secondary btn-sm" data-edit>Editar</button>
+            <button class="btn btn-secondary btn-sm" data-del>Excluir</button>
+          </div>`;
+        row.querySelector(".item__title").textContent = d.titulo || "(sem título)";
+        row.querySelector(".item__meta").textContent =
+          (d.nota ? d.nota + " · " : "") + "por " + (it.created_by || "?");
+        row.querySelector("[data-edit]").addEventListener("click", () => startEdit(it));
+        row.querySelector("[data-del]").addEventListener("click", () => remove(it.id));
+        box.appendChild(row);
+      }
+    } catch (e) {
+      if (e instanceof lugui.LuguiAuthError) { return initAuth(); }  // sessão expirou
+      box.innerHTML = '<div class="err">Erro ao carregar: ' + (e.message || e) + "</div>";
+    }
+  }
+
+  // --- Create / Update ----------------------------------------------
+  $("itemForm").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    $("formErr").textContent = "";
+    const payload = { titulo: $("fTitulo").value.trim(), nota: $("fNota").value.trim() };
+    if (!payload.titulo) { $("formErr").textContent = "Título é obrigatório."; return; }
+    const editId = $("editId").value;
+    try {
+      if (editId) {
+        await lugui.data.update(APP_KEY, COLLECTION, editId, payload);   // PUT (last-write-wins)
+      } else {
+        await lugui.data.create(APP_KEY, COLLECTION, payload);           // POST
+      }
+      resetForm();
+      await render();
+    } catch (e) {
+      if (e instanceof lugui.LuguiAuthError) { return lugui.login(); }
+      $("formErr").textContent = "Não salvou: " + (e.message || e);
+    }
+  });
+
+  function startEdit(it) {
+    const d = it.data || {};
+    $("editId").value = it.id;
+    $("fTitulo").value = d.titulo || "";
+    $("fNota").value = d.nota || "";
+    $("formTitle").textContent = "Editar";
+    $("submitBtn").textContent = "Salvar alterações";
+    $("cancelBtn").hidden = false;
+    $("fTitulo").focus();
+  }
+  $("cancelBtn").addEventListener("click", resetForm);
+  function resetForm() {
+    $("editId").value = "";
+    $("itemForm").reset();
+    $("formTitle").textContent = "Adicionar";
+    $("submitBtn").textContent = "Salvar";
+    $("cancelBtn").hidden = true;
+    $("formErr").textContent = "";
+  }
+
+  // --- Delete --------------------------------------------------------
+  async function remove(id) {
+    if (!confirm("Excluir este item?")) return;
+    try {
+      await lugui.data.remove(APP_KEY, COLLECTION, id);
+      await render();
+    } catch (e) {
+      if (e instanceof lugui.LuguiAuthError) { return lugui.login(); }
+      alert("Não excluiu: " + (e.message || e));
+    }
+  }
+
+  // --- Boot ----------------------------------------------------------
+  (async function boot() {
+    const email = await initAuth();
+    if (email) await render();
+  })();
+  </script>
+
+</body>
+</html>
