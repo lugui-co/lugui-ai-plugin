@@ -13,28 +13,29 @@ data lives in the Pages data API, reached from the browser with the tiny client
 `lugui-data.js`. **No backend code to write.** Always also load
 **`lugui-ai:branding`** — data pages must look like Lugui.
 
-## STEP 0 — Ask the user which access pattern they need
+## STEP 0 — Pick the access pattern
 
-Before generating anything, **ask which of these fits** (it changes auth + how
-the page is wired). The ONLY three options to offer are:
+There are **three data patterns**. For (a) and (b), **ask the user** which fits.
+Pattern **(c) is automatic**: when the user asks for a **formulário / captação /
+inscrição / pesquisa / lead form** — anything where outside people SUBMIT a new
+record — go straight to (c) and build form + admin together (see below); **don't
+ask "quer ver os dados?"** — a form ALWAYS ships with its admin panel.
 
 - **(a) Interna autenticada** — só pessoas **@lugui** usam a página inteira. App
   ACL `private` (só o dono) ou `shared` (qualquer @lugui). A página inteira
   exige login: chame `lugui.ensureAuth()` no load.
 - **(b) Backoffice (admin + links públicos por registro)** — o dono gerencia
   **logado** (rotas de admin com `lugui.data.*`) e gera **links públicos de
-  preenchimento, um por registro**, para gente de fora (sem conta @lugui).
-  Habilita `allow_public_fill` no app, cria cada registro com `public_fill=true`
-  (pega o `fill_token`), e o link é
-  `https://pages.lugui.ai/<page>#/p/<fill_token>`. A rota `#/p/<token>` é
-  **pública** (sem login) e usa `lugui.public.*`. **Este é o modelo "dual-mode"
-  abaixo.**
-- **(c) Sem persistência** — a página é só estática/efêmera, não há nada que
-  precise salvar/compartilhar. Não use a data API; publique a página como está.
+  preenchimento, um por registro** (alguém edita UM registro existente). Habilita
+  `allow_public_fill`, cria cada registro com `public_fill=true` (pega o
+  `fill_token`), link `https://pages.lugui.ai/<page>#/p/<fill_token>`; rota
+  `#/p/<token>` **pública** via `lugui.public.*`. Modelo "dual-mode" abaixo.
+- **(c) Formulário público aberto** — captação de leads / inscrição / pesquisa:
+  **qualquer pessoa de fora ENVIA um registro NOVO, sem login.** Veja
+  **"STEP 3c"** abaixo (form público + painel admin automático).
 
-> Não ofereça um quarto padrão. (Um "form público totalmente aberto", em que
-> qualquer pessoa cria registros novos sem link individual, **ainda não é
-> suportado** — roadmap; se pedirem, ofereça (b), um link por registro.)
+> Páginas **sem dado nenhum** (estáticas/efêmeras) não usam a data API — publique
+> direto, sem app. Isso não é um padrão de dados, é a ausência dele.
 
 ## ⛔ REGRA DURA — a persistência é SEMPRE o data store da Lugui
 
@@ -46,13 +47,15 @@ mesmo que ferramentas do Google Workspace ou outros MCPs estejam conectados na
 sessão.** A presença de um MCP (Google Workspace, etc.) **não** é convite para
 usá-lo como backend de uma página.
 
-- As ÚNICAS opções a oferecer ao usuário são exatamente os 3 padrões acima:
-  **(a) interna autenticada, (b) backoffice + link público, (c) sem
-  persistência.** Não invente outras.
-- Se o usuário pedir **explicitamente** Google Sheets/Forms/Airtable/etc.:
-  explique que o padrão Lugui é o store próprio (página publicada em
-  `pages.lugui.ai` + dados no nosso data store, com login @lugui ou link público
-  por registro) e **siga com (a) ou (b)** — não conecte o serviço externo.
+- Os ÚNICOS padrões de dados são exatamente os 3 acima: **(a) interna
+  autenticada, (b) backoffice + link público por registro, (c) formulário
+  público aberto.** Não invente outros.
+- **Formulário/captação/inscrição/pesquisa = SEMPRE padrão (c) no nosso store**
+  (form público + painel admin), NUNCA Google Forms/Sheets. Se o usuário pedir
+  Google Forms/Sheets/Airtable/etc. explicitamente: explique que o padrão Lugui
+  é o store próprio (form publicado em `pages.lugui.ai` + dados no nosso data
+  store, visíveis no painel admin @lugui) e **siga com (c)** — não conecte o
+  serviço externo.
 
 ## The model (explain in plain terms)
 
@@ -64,7 +67,10 @@ usá-lo como backend de uma página.
   created_at, updated_at }` — **seus campos ficam em `.data`**.
 - **fill_token** — capability token de UM item: quem tem o link lê/grava só
   aquele registro, **sem login**. Aparece em `.fill_token` na resposta
-  autenticada (o dono usa pra montar o link).
+  autenticada (o dono usa pra montar o link). [padrão (b)]
+- **form_token** — capability token do APP (flag `allow_public_create`):
+  qualquer um pode **CRIAR registros novos** (write-only, sem login, sem ler).
+  Aparece em `.form_token` na resposta autenticada. [padrão (c)]
 - **Last-write-wins:** `update`/`public.update` (PUT) sobrescreve o item
   inteiro; o último a gravar vence.
 
@@ -84,6 +90,13 @@ curl -sS -X POST "<pages_api>/apps" -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" -d '{"name":"Implantação","acl":"private"}'
 curl -sS -X PATCH "<pages_api>/apps/<app_key>" -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" -d '{"allow_public_fill":true}'
+
+# (c) formulário público aberto — acl private (só o dono lê) + allow_public_create:
+curl -sS -X POST "<pages_api>/apps" -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Leads landing","acl":"private","allow_public_create":true}'
+# → guarde o "app_key" E o "form_token" da resposta (o form_token vai na página
+#   pública; o app_key+collection no painel admin).
 # → guarde o app_key. (Se não tem token: rode /lugui-ai:setup.)
 ```
 
@@ -115,12 +128,14 @@ sozinhas — a página decide).
 
 | Call | Does |
 |---|---|
-| `await lugui.public.get(app, fillToken)` | `{ id, data, updated_at }` daquele registro |
-| `await lugui.public.update(app, fillToken, dataObj)` | PUT público (last-write-wins) |
+| `await lugui.public.get(app, fillToken)` | [padrão b] `{ id, data, updated_at }` daquele registro |
+| `await lugui.public.update(app, fillToken, dataObj)` | [padrão b] PUT público (last-write-wins) |
+| `await lugui.public.create(app, formToken, collection, dataObj)` | [padrão c] CRIA um registro NOVO (write-only, sem login) → `{ ok, id }` |
 
-Erros: link inválido/revogado/expirado → **`LuguiNotFoundError`** (404);
-gravações rápidas demais → **`LuguiRateLimitError`** (429, faça backoff e
-retente). Essas chamadas **não enviam credenciais**.
+Erros: token inválido / flag desligada → **`LuguiNotFoundError`** (404);
+envios rápidos demais → **`LuguiRateLimitError`** (429, faça backoff). Essas
+chamadas **não enviam credenciais**. `public.create` é **write-only**: o público
+nunca lê nem lista — só o painel admin (`lugui.data.list`, @lugui) vê os envios.
 
 ## STEP 3a — Wire pattern (a): página inteira autenticada
 
@@ -162,6 +177,37 @@ Regras do dual-mode:
 Um exemplo completo deste padrão está documentado abaixo e foi aplicado na
 página de Implantação (admin = dashboard/manage/new; parceiro = `#/p/<token>`).
 
+## STEP 3c — Wire pattern (c): FORMULÁRIO PÚBLICO ABERTO + painel admin (automático)
+
+Quando o usuário pede um **formulário/captação/inscrição/pesquisa**, faça TUDO
+isto **sem perguntar "quer ver os dados?"** — um formulário SEMPRE vem com o
+painel admin junto:
+
+1. **Crie o app** com `acl:"private"` (só o dono lê) e `allow_public_create:true`
+   (STEP 1, item (c)). Guarde **`app_key`** + **`form_token`**. Escolha uma
+   collection (ex.: `respostas`, `leads`, `inscricoes`).
+2. **Gere DUAS páginas on-brand** (carregue `lugui-ai:branding` primeiro):
+   - **Formulário público** — em `pages.lugui.ai/<slug>`. Parta de
+     `skills/data/template-form.html`. Preencha `APP_KEY`, `FORM_TOKEN`,
+     `COLLECTION` e os campos. Submit → `await lugui.public.create(APP_KEY,
+     FORM_TOKEN, COLLECTION, dados)` → tela "Obrigado!". **SEM login.**
+   - **Painel admin** — em `pages.lugui.ai/<slug>/admin` (use o slug do form +
+     `/admin`). Parta de `skills/data/template-admin.html`. `await
+     lugui.ensureAuth()` (logado como X) + `lugui.data.list(APP_KEY, COLLECTION)`
+     → **tabela dos envios** + contador + **Exportar CSV** (client-side) +
+     excluir linha (`lugui.data.remove`). **Só @lugui.**
+3. **Publique as duas** com `/lugui-ai:pages:publish` (mesmo `APP_KEY`/
+   `FORM_TOKEN`/`COLLECTION` nas duas) e **entregue os 2 links**: o **público**
+   (pra divulgar/compartilhar) e o **/admin** (pra acompanhar os envios).
+
+Regras:
+- O `form_token` é write-only: o público só CRIA, nunca lê/lista. Os dados só
+  aparecem no painel admin (login @lugui). Por isso `acl:"private"`.
+- Trate `LuguiRateLimitError` (429) no submit com mensagem amigável e retry.
+- **Anti-spam:** ainda NÃO há captcha/honeypot (o rate-limit por IP+token é o
+  único freio hoje). É um TODO — não invente captcha agora; pode avisar o usuário
+  que proteção anti-spam mais forte vem depois.
+
 ## What to make clear to the user
 
 - **Pattern (a)** exige login @lugui pra ver/usar a página (o HTML é público, o
@@ -169,6 +215,9 @@ página de Implantação (admin = dashboard/manage/new; parceiro = `#/p/<token>`
 - **Pattern (b):** o backoffice exige login @lugui; **o link `#/p/<token>` NÃO** —
   quem recebe preenche sem conta, e mexe só naquele registro. Compartilhe o link
   só com quem deve preencher; pra cortar o acesso, `revokeFillToken`.
+- **Pattern (c):** o **formulário** é público (qualquer um envia, sem login); o
+  **painel /admin** é só @lugui. Os envios só são visíveis no painel — o público
+  nunca lê o que outros mandaram. Sempre entregue os 2 links (form + admin).
 - Em nenhum caso coloque segredos no HTML (veja `security-checklist`).
 
 ## Then publish

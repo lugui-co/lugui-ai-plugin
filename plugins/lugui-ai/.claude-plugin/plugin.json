@@ -1,7 +1,7 @@
 {
   "name": "lugui-ai",
-  "version": "0.7.0",
-  "description": "Suíte de produtividade da Lugui no Claude Code — publica e gerencia páginas on-brand em pages.lugui.ai, com dados (autenticado @lugui) e backoffices com links públicos de preenchimento por registro, sem código.",
+  "version": "0.8.0",
+  "description": "Suíte de produtividade da Lugui no Claude Code — publica e gerencia páginas on-brand em pages.lugui.ai, com dados (autenticado @lugui), backoffices com links públicos por registro e formulários públicos abertos com painel admin automático, sem código.",
   "author": {
     "name": "Lugui",
     "url": "https://github.com/lugui-co"

@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- TODO: troque título -->
+  <title>Respostas · Lugui</title>
+  <meta name="description" content="Painel administrativo dos envios do formulário (acesso @lugui)." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Cliente da data API. Listagem usa lugui.data.* (exige login @lugui). -->
+  <script src="https://pages-api.coolify.lugui.ai/lugui-data.js"></script>
+
+  <style>
+    /* TOKENS Lugui (skills/branding/tokens.css). NÃO invente tokens. */
+    :root {
+      --lugui-dark: #2B4A42;
+      --lugui-lime: #D4F34A;
+      --lugui-cream: #EDE8DC;
+      --lugui-navy: #1A2332;
+      --lugui-white: #FFFFFF;
+      --lugui-text: #1A1A1A;
+      --lugui-muted: #5F6B68;
+      --lugui-border: #D9D4C7;
+      --lugui-border-strong: #B5AE9A;
+      --lugui-danger: #B8412A;
+      --lugui-soft: #F7F4EA;
+      --lugui-premise: #F4EFD8;
+      --radius-sm: 6px;
+      --radius-lg: 16px;
+      --t-fast: .15s;
+      --lugui-font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --lugui-font-mono: ui-monospace, "SF Mono", Monaco, monospace;
+      --lugui-focus-ring: 0 0 0 3px rgba(212, 243, 74, .35);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--lugui-font-sans); font-size: 15px; line-height: 1.55; color: var(--lugui-text); background: var(--lugui-cream); -webkit-font-smoothing: antialiased; }
+    h1, h2 { margin: 0; font-weight: 700; letter-spacing: -.01em; color: var(--lugui-dark); }
+    p { margin: 0; }
+    .container { max-width: 1080px; margin: 0 auto; padding: 32px 24px 96px; }
+    .eyebrow { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--lugui-muted); font-weight: 600; }
+    .muted { color: var(--lugui-muted); }
+
+    .appbar { position: sticky; top: 0; z-index: 30; background: var(--lugui-white); border-bottom: 1px solid var(--lugui-border); }
+    .appbar__inner { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; gap: 16px; padding: 14px 24px; }
+    .brand { display: flex; align-items: center; font-weight: 800; font-size: 20px; letter-spacing: -.02em; color: var(--lugui-dark); text-decoration: none; }
+    .brand__dot { color: var(--lugui-lime); }
+    .auth { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--lugui-muted); }
+    .auth__email { font-weight: 600; color: var(--lugui-dark); }
+
+    .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 10px 0 20px; flex-wrap: wrap; }
+    .head h1 { font-size: clamp(24px, 4vw, 32px); line-height: 1.1; }
+    .count { font-size: 13px; color: var(--lugui-muted); margin-top: 4px; }
+
+    .table-wrap { border: 1px solid var(--lugui-border); border-radius: var(--radius-lg); overflow: auto; background: var(--lugui-white); }
+    table { width: 100%; border-collapse: collapse; }
+    th { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--lugui-muted); font-weight: 600; text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--lugui-border); background: var(--lugui-soft); white-space: nowrap; }
+    td { padding: 12px 14px; font-size: 14px; border-bottom: 1px solid var(--lugui-border); vertical-align: top; }
+    tr:last-child td { border-bottom: 0; }
+    td.when { white-space: nowrap; color: var(--lugui-muted); font-size: 13px; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; font-family: inherit; font-size: 13px; font-weight: 600; border-radius: 8px; border: 1px solid transparent; cursor: pointer; text-decoration: none; transition: transform .08s ease, border-color var(--t-fast), background var(--t-fast); }
+    .btn:active { transform: translateY(1px); }
+    .btn:focus-visible { outline: none; box-shadow: var(--lugui-focus-ring); }
+    .btn-primary { background: var(--lugui-dark); color: var(--lugui-lime); }
+    .btn-primary:hover { background: var(--lugui-navy); }
+    .btn-secondary { background: var(--lugui-white); color: var(--lugui-dark); border-color: var(--lugui-border-strong); }
+    .btn-secondary:hover { border-color: var(--lugui-dark); }
+    .btn-danger { background: var(--lugui-white); color: var(--lugui-danger); border-color: var(--lugui-border-strong); }
+    .btn-danger:hover { border-color: var(--lugui-danger); }
+
+    .empty { text-align: center; padding: 48px 24px; color: var(--lugui-muted); border: 1px dashed var(--lugui-border-strong); border-radius: var(--radius-lg); background: var(--lugui-white); }
+    .gate { text-align: center; padding: 56px 24px; }
+    .callout { padding: 14px 18px; background: var(--lugui-premise); border-left: 3px solid var(--lugui-lime); border-radius: 6px; font-size: 14px; text-align: left; }
+    .err { color: var(--lugui-danger); font-size: 13px; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <header class="appbar">
+    <div class="appbar__inner">
+      <a class="brand" href="#">lugui<span class="brand__dot">.</span></a>
+      <div class="auth">
+        <span id="authEmail" class="auth__email" hidden></span>
+        <button id="loginBtn" class="btn btn-secondary" hidden>Entrar com @lugui</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Portão de login -->
+    <section id="gate" class="gate" hidden>
+      <div class="callout">Painel administrativo — entre com sua conta <strong>@lugui.ai</strong> para ver os envios.</div>
+      <p style="margin-top:16px"><button class="btn btn-primary" id="gateLogin">Entrar</button></p>
+    </section>
+
+    <!-- Painel -->
+    <div id="panel" hidden>
+      <div class="head">
+        <div>
+          <div class="eyebrow">Lugui · Painel</div>
+          <h1>TODO: título (ex.: Respostas do formulário)</h1>
+          <div class="count" id="count"></div>
+        </div>
+        <div>
+          <button class="btn btn-secondary" id="refreshBtn">Atualizar</button>
+          <button class="btn btn-primary" id="csvBtn">Exportar CSV</button>
+        </div>
+      </div>
+      <div id="host"><div class="empty">Carregando…</div></div>
+    </div>
+  </main>
+
+  <script>
+  /* ===================================================================
+     CONFIG — o MESMO app/collection do formulário público (padrão c).
+     =================================================================== */
+  const APP_KEY = "TODO-app-key";   // mesmo do template-form.html
+  const COLLECTION = "respostas";   // mesmo do template-form.html
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c]));
+  const fmtWhen = (iso) => { if (!iso) return "—"; const d = new Date(iso); return isNaN(d) ? "—" : d.toLocaleString("pt-BR", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }); };
+
+  let ITEMS = [];     // os itens carregados (cada um: {id, data, created_at, ...})
+  let COLUMNS = [];    // colunas derivadas das chaves de .data
+
+  function deriveColumns(items) {
+    const seen = [];
+    items.forEach(it => Object.keys(it.data || {}).forEach(k => { if (!seen.includes(k)) seen.push(k); }));
+    return seen;
+  }
+
+  // --- Login UI ------------------------------------------------------
+  function showGate() { $("authEmail").hidden = true; $("loginBtn").hidden = false; $("gate").hidden = false; $("panel").hidden = true; }
+  function showPanel(email) { $("authEmail").textContent = "Logado como " + email; $("authEmail").hidden = false; $("loginBtn").hidden = true; $("gate").hidden = true; $("panel").hidden = false; }
+  $("loginBtn").addEventListener("click", () => lugui.login());
+  $("gateLogin").addEventListener("click", () => lugui.login());
+
+  // --- Render --------------------------------------------------------
+  async function load() {
+    const host = $("host");
+    try {
+      ITEMS = await lugui.data.list(APP_KEY, COLLECTION, { limit: 500 });
+      ITEMS.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      $("count").textContent = ITEMS.length ? (ITEMS.length + (ITEMS.length === 1 ? " envio" : " envios")) : "";
+      if (!ITEMS.length) {
+        host.innerHTML = '<div class="empty">Nenhum envio ainda. Compartilhe o link público do formulário.</div>';
+        return;
+      }
+      COLUMNS = deriveColumns(ITEMS);
+      host.innerHTML = `
+        <div class="table-wrap"><table>
+          <thead><tr>${COLUMNS.map(c => `<th>${esc(c)}</th>`).join("")}<th>Recebido</th><th></th></tr></thead>
+          <tbody>${ITEMS.map(it => `
+            <tr data-id="${esc(it.id)}">
+              ${COLUMNS.map(c => `<td>${esc((it.data || {})[c])}</td>`).join("")}
+              <td class="when">${fmtWhen(it.created_at)}</td>
+              <td><button class="btn btn-danger" data-del="${esc(it.id)}">Excluir</button></td>
+            </tr>`).join("")}</tbody>
+        </table></div>`;
+      host.querySelectorAll("[data-del]").forEach(btn => btn.addEventListener("click", () => remove(btn.getAttribute("data-del"))));
+    } catch (e) {
+      if (e instanceof lugui.LuguiAuthError) return boot();
+      host.innerHTML = `<div class="err">Erro ao carregar: ${esc(e.message || e)}</div>`;
+    }
+  }
+
+  async function remove(id) {
+    if (!confirm("Excluir este envio? Isso é permanente.")) return;
+    try {
+      await lugui.data.remove(APP_KEY, COLLECTION, id);
+      await load();
+    } catch (e) {
+      if (e instanceof lugui.LuguiAuthError) return lugui.login();
+      alert("Não consegui excluir: " + (e.message || e));
+    }
+  }
+
+  // --- Exportar CSV (client-side) ------------------------------------
+  function csvCell(v) {
+    const s = String(v == null ? "" : v);
+    return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  function exportCSV() {
+    if (!ITEMS.length) return;
+    const cols = COLUMNS.length ? COLUMNS : deriveColumns(ITEMS);
+    const header = cols.concat(["recebido_em"]);
+    const rows = ITEMS.map(it => cols.map(c => csvCell((it.data || {})[c])).concat([csvCell(it.created_at)]).join(","));
+    const csv = "﻿" + header.map(csvCell).join(",") + "\r\n" + rows.join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = (APP_KEY + "-" + COLLECTION + ".csv");
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(a.href);
+  }
+  $("csvBtn").addEventListener("click", exportCSV);
+  $("refreshBtn").addEventListener("click", load);
+
+  // --- Boot ----------------------------------------------------------
+  async function boot() {
+    const user = await lugui.me();
+    if (!user || !user.email) { showGate(); return; }
+    showPanel(user.email);
+    await load();
+  }
+  boot();
+  </script>
+</body>
+</html>
