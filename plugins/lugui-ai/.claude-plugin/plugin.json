@@ -1,11 +1,11 @@
 {
   "name": "lugui-ai",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Suíte de produtividade da Lugui no Claude Code — publica e gerencia páginas on-brand em pages.lugui.ai, com dados (autenticado @lugui), backoffices com links públicos por registro e formulários públicos abertos com painel admin automático, sem código.",
   "author": {
     "name": "Lugui",
     "url": "https://github.com/lugui-co"
   },
   "homepage": "https://github.com/lugui-co/lugui-ai-powered/tree/main/plugins/lugui-ai",
-  "keywords": ["lugui", "produtividade", "suite", "pages", "publishing", "branding", "data", "html", "curl"]
+  "keywords": ["lugui", "produtividade", "suite", "pages", "publishing", "branding", "voz", "copywriting", "data", "html", "curl"]
 }

@@ -55,31 +55,43 @@ API, and report the result. The file to publish is in `$ARGUMENTS`.
    activation (it is unreliable). Explicitly:
 
    - **Load the `lugui-ai:branding` skill** (read `skills/branding/SKILL.md`).
+   - **Load the `lugui-ai:voz-e-mensagem` skill** (read
+     `skills/voz-e-mensagem/SKILL.md`) for ALL copy on the page — tom de voz,
+     palavras proibidas e pilares de mensagem são obrigatórios.
    - **Start from `skills/branding/template.html`** instead of writing markup
      from scratch.
    - **Use the real tokens from `skills/branding/tokens.css`** (inline the
-     `:root`). Background must be **cream**.
-   - **Load Plus Jakarta Sans** via Google Fonts:
-     `https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap`
+     `:root`). Background must be **light** (`--lugui-white #FFFFFF` or
+     `--lugui-offwhite-50 #FBF8F0`) — the brand is light-first.
+   - **Load both official fonts** via Google Fonts (Plus Jakarta Sans for
+     headings, DM Sans for body):
+     `https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap`
    - **NEVER invent tokens.** There is no `--lugui-primary`, `--lugui-accent`,
-     `--lugui-bg`, or generic greys like `#1a1a2e`/`#f5f6fa`. The correct names
-     and values are exactly: `--lugui-dark #2B4A42`, `--lugui-lime #D4F34A`,
-     `--lugui-cream #EDE8DC`, `--lugui-navy #1A2332`, `--lugui-sage #5A7A70`,
-     `--lugui-text #1A1A1A`, `--lugui-muted #5F6B68`, `--lugui-border #D9D4C7`,
-     plus status/tints — see `tokens.css` for the complete list. If you don't
-     remember a value, READ `tokens.css`; do not guess.
+     `--lugui-bg`, or generic greys like `#1a1a2e`/`#f5f6fa`. The **old palette
+     is retired** — `--lugui-dark #2B4A42`, `--lugui-lime #D4F34A`,
+     `--lugui-cream #EDE8DC`, `--lugui-sage`, `--lugui-premise`, `--lugui-soft`
+     must NOT appear in new pages. The correct names and values are exactly:
+     `--lugui-white #FFFFFF`, `--lugui-offwhite-50 #FBF8F0`,
+     `--lugui-offwhite #EDE9DE`, `--lugui-lima #E9FF81`,
+     `--lugui-lima-hover #D5EB69`, `--lugui-navy #02152B`,
+     `--lugui-teal #234248`, `--lugui-gold #998454`, `--lugui-text #02152B`,
+     `--lugui-border #D9D6CC`, plus neutrals — see `tokens.css` for the
+     complete list. If you don't remember a value, READ `tokens.css`; do not
+     guess.
 
    **Brand sanity-check (run right before the upload, every time):** confirm the
-   HTML you are about to send (a) loads Plus Jakarta Sans (a
-   `fonts.googleapis.com` link containing `Plus+Jakarta+Sans`), and (b) uses the
-   real tokens `--lugui-dark` / `--lugui-lime` / `--lugui-cream` with a cream
-   background.
+   HTML you are about to send (a) loads Plus Jakarta Sans AND DM Sans (a
+   `fonts.googleapis.com` link containing `Plus+Jakarta+Sans` and `DM+Sans`),
+   (b) uses the real tokens `--lugui-navy` / `--lugui-lima` / `--lugui-white`
+   with a light background, and (c) contains none of the retired tokens
+   (`--lugui-dark`, `--lugui-lime`, `--lugui-cream`).
    - If it PASSES → continue to the JSON build.
    - If it FAILS (e.g. a pre-existing off-brand file, or invented tokens) →
      **STOP. Do NOT publish a non-branded page silently.** Tell the user the
-     page is off-brand and offer to restyle it to the Lugui standard (template +
-     tokens + Plus Jakarta Sans) first. Only publish after it passes, or after
-     the user explicitly insists on publishing the file as-is.
+     page is off-brand (or on the retired palette) and offer to restyle it to
+     the current Lugui standard (template + tokens + Plus Jakarta Sans/DM Sans)
+     first. Only publish after it passes, or after the user explicitly insists
+     on publishing the file as-is.
 
 7. **🔒 PERSISTÊNCIA — detect it BEFORE publishing.**
 

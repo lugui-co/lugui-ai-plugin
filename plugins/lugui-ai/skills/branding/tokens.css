@@ -1,30 +1,39 @@
 /* =====================================================================
-   LUGUI · Design Tokens
-   Source of truth, extracted from the real "Implantação · Lugui" page.
-   Copy this :root into any page you generate for pages.lugui.ai, or
-   @import it. Keep the token NAMES; only the brand owner changes values.
+   LUGUI · Design Tokens — paleta oficial curada por Marketing & Design.
+   Source of truth. Copy this :root into any page you generate for
+   pages.lugui.ai, or @import it. Keep the token NAMES; only the brand
+   owner changes values.
+
+   Filosofia: light-first, editorial, tipográfica. Fundo claro sempre;
+   lima como acento cheio (texto navy por cima); navy para títulos e
+   máximo 1 seção de contraste por página.
+
+   ⚠️ A paleta antiga (--lugui-dark #2B4A42, --lugui-lime #D4F34A,
+   --lugui-cream #EDE8DC, --lugui-sage, --lugui-premise, --lugui-soft)
+   foi APOSENTADA. Não use em páginas novas; migre ao editar antigas.
    ===================================================================== */
 :root {
-  /* --- Brand colors --- */
-  --lugui-dark: #2B4A42;          /* deep green — structure, headers, primary surfaces, text on cream */
-  --lugui-lime: #D4F34A;          /* signature accent — CTAs, highlights, active state. USE SPARINGLY */
-  --lugui-cream: #EDE8DC;         /* default page background (never flat pure white) */
-  --lugui-navy: #1A2332;          /* darkest tone — primary hover, deep contrast */
-  --lugui-sage: #5A7A70;          /* muted green — secondary accents, hover hints */
-  --lugui-white: #FFFFFF;         /* card / elevated surfaces (on top of cream) */
-  --lugui-text: #1A1A1A;          /* body text */
-  --lugui-muted: #5F6B68;         /* secondary text, labels, hints */
-  --lugui-border: #D9D4C7;        /* default borders / dividers */
-  --lugui-border-strong: #B5AE9A; /* stronger borders, dashed empty/file inputs */
+  /* --- Paleta oficial --- */
+  --lugui-white: #FFFFFF;         /* fundo primário de páginas e documentos */
+  --lugui-offwhite-50: #FBF8F0;   /* seções de destaque claro, contextos formais */
+  --lugui-offwhite: #EDE9DE;      /* fundo terciário — opção para variar */
+  --lugui-lima: #E9FF81;          /* acento principal — preenchimento cheio com texto navy por cima. NUNCA texto/linha fina em fundo claro */
+  --lugui-lima-hover: #D5EB69;    /* hover do botão lima (texto continua navy) */
+  --lugui-navy: #02152B;          /* títulos, rodapé, seções de contraste (máx. 1 por página); texto sobre fundo claro */
+  --lugui-teal: #234248;          /* ícones e elementos secundários */
+  --lugui-gold: #998454;          /* apoio pontual, nunca dominante; NUNCA junto de navy */
 
-  /* --- Status colors --- */
-  --lugui-danger: #B8412A;        /* errors, required marks, destructive */
-  --lugui-warn: #C7861B;          /* warnings, in-progress */
-  --lugui-success: #3F7A4A;       /* success, sent/confirmed */
+  /* --- Neutros (cinzas quentes navy ↔ offwhite — nunca cinza genérico) --- */
+  --lugui-text: #02152B;            /* texto primário (navy) */
+  --lugui-text-secondary: #234248;  /* texto secundário / ícones (teal) */
+  --lugui-text-tertiary: #606A73;   /* legenda, metadado */
+  --lugui-text-disabled: #9AA0A1;   /* desabilitado, placeholder */
+  --lugui-border: #D9D6CC;          /* borda de card, divisor forte */
+  --lugui-hairline: #E7E4DB;        /* divisor sutil */
 
-  /* --- Tinted backgrounds --- */
-  --lugui-premise: #F4EFD8;       /* premise / locked / read-only fields, callout bg */
-  --lugui-soft: #F7F4EA;          /* soft neutral fill — hovers, table headers, chips */
+  /* --- Semânticos (erro/sucesso/alerta/info): A DEFINIR pelo design
+         system da Lugui. Não crie vermelho/verde/âmbar avulsos — sinalize
+         estados com texto navy/teal + rotulagem clara. --- */
 
   /* --- Radius --- */
   --radius-sm: 6px;
@@ -32,23 +41,24 @@
   --radius-lg: 16px;
   --radius-xl: 24px;
 
-  /* --- Shadows (tinted with navy, never neutral grey) --- */
-  --shadow-sm: 0 1px 2px rgba(26, 35, 50, .04);
-  --shadow-md: 0 4px 14px rgba(26, 35, 50, .06);
-  --shadow-lg: 0 12px 32px rgba(26, 35, 50, .10);
+  /* --- Shadows (tingidas de navy #02152B, nunca cinza neutro) --- */
+  --shadow-sm: 0 1px 2px rgba(2, 21, 43, .04);
+  --shadow-md: 0 4px 14px rgba(2, 21, 43, .06);
+  --shadow-lg: 0 12px 32px rgba(2, 21, 43, .10);
 
   /* --- Transitions --- */
   --t-fast: .15s;
   --t-base: .25s;
 
-  /* --- Typography --- */
-  --lugui-font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* --- Typography: Plus Jakarta Sans (títulos 700–800) + DM Sans (texto) --- */
+  --lugui-font-display: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --lugui-font-sans: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --lugui-font-mono: ui-monospace, "SF Mono", Monaco, "Cascadia Code", monospace;
 
   /* --- Layout --- */
   --lugui-content-max: 1280px;    /* full app width */
   --lugui-content-narrow: 880px;  /* reading/form width */
 
-  /* --- Focus ring (lime glow over dark border) --- */
-  --lugui-focus-ring: 0 0 0 3px rgba(212, 243, 74, .35);
+  /* --- Focus ring (teal, provisório até o design system definir foco) --- */
+  --lugui-focus-ring: 0 0 0 3px rgba(35, 66, 72, .25);
 }

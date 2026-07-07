@@ -23,7 +23,11 @@ web-login auth.
     permanent/ephemeral (+ optional canonical path), sanity-checks for secrets,
     then publishes via `curl`.
 - **Skills** (auto-applied by Claude when relevant)
-  - `branding` — Lugui design tokens + a copyable on-brand HTML template.
+  - `branding` — identidade visual oficial (curadoria Marketing & Design):
+    paleta lima/navy light-first, tipografia Plus Jakarta Sans + DM Sans, logo
+    SVG oficial, tokens + template HTML copiável.
+  - `voz-e-mensagem` — o que a Lugui diz e como diz: tom de voz, público,
+    pilares de mensagem, palavras proibidas e frases-chave da marca.
   - `code-best-practices` — semantic, accessible, self-contained, CSP-friendly HTML/CSS/JS.
   - `security-checklist` — what must never go on a public page.
 
