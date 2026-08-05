@@ -19,9 +19,12 @@ web-login auth.
 - **Commands**
   - `/lugui-ai:setup` — one-time auth for the whole suite: web login, paste the
     `lgp_...` token, saved to `~/.lugui/config.json` and validated.
-  - `/lugui-ai:pages:publish <arquivo.html>` — loads the security skill, asks
-    permanent/ephemeral (+ optional canonical path), sanity-checks for secrets,
-    then publishes via `curl`.
+  - `/lugui-ai:pages:publish <arquivo.html | pasta-da-lp>` — loads the security
+    skill, asks permanent/ephemeral (+ optional canonical path), sanity-checks for
+    secrets, resolves the page's **images/assets**, then publishes via `curl`.
+    Uma pasta de LP vai inteira num `.zip` (`POST /pages/bundle`); uma página
+    gerada na sessão manda as imagens no campo `assets`. O servidor recomprime
+    toda imagem (WebP, máx. 2000px, sem EXIF) e reescreve os caminhos do HTML.
 - **Skills** (auto-applied by Claude when relevant)
   - `branding` — identidade visual oficial (curadoria Marketing & Design):
     paleta lima/navy light-first, tipografia Plus Jakarta Sans + DM Sans, logo
@@ -81,7 +84,10 @@ token. If the token leaks or expires, just redo the web login at
 ## How publishing works
 
 `POST {pages_api}/pages` with `Authorization: Bearer <lgp_token>` and body
-`{ "html", "type", "slug" }`; response `{ url, slug, type, expires_at }`.
+`{ "html", "type", "slug", "assets" }`; response `{ url, slug, type, expires_at,
+assets, unresolved_references, … }`. Para publicar uma pasta de LP inteira (com
+`img/`, `css/`, fontes), o endpoint é `POST {pages_api}/pages/bundle` com o `.zip`
+no corpo cru.
 
 Claude reads the HTML, asks permanent vs ephemeral, runs a quick secret sanity
 check, writes the JSON body (with the HTML safely escaped) to a temp file, and

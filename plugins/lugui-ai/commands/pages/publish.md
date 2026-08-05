@@ -1,6 +1,6 @@
 ---
-description: Validate an HTML file and publish it to a public pages.lugui.ai link, using curl + your personal token. No Python, no libraries.
-argument-hint: "<arquivo.html>"
+description: Validate an HTML file (or a whole LP folder, images included) and publish it to a public pages.lugui.ai link, using curl + your personal token. No Python, no libraries.
+argument-hint: "<arquivo.html | pasta-da-lp>"
 ---
 
 # /lugui-ai:pages:publish
@@ -144,6 +144,48 @@ API, and report the result. The file to publish is in `$ARGUMENTS`.
 
    The brand sanity-check (step 6) still applies to the final, data-wired HTML.
 
+7.5. **🖼️ IMAGENS E ASSETS — resolva ANTES de publicar.**
+
+   Uma página com `<img src="hero.jpg">` e nada mais publica **quebrada**: o
+   arquivo não sobe sozinho. Antes de montar o body, varra o HTML procurando
+   referências a arquivos locais em `src`, `srcset`, `href` e `url(...)` do CSS.
+   Toda referência que **não** começa com `http://`, `https://`, `//`, `data:`,
+   `#`, `mailto:` ou `tel:` e tem extensão de arquivo é um asset que precisa subir.
+
+   **Se a pasta do arquivo tem os assets (o caso comum de uma LP), use o bundle
+   ZIP — é um comando só e não precisa montar JSON:**
+
+   ```bash
+   cd <pasta-da-lp> && zip -r /tmp/lugui-lp.zip . -x '.*' -x '__MACOSX/*' && cd -
+   curl -sS -w "\n%{http_code}" -X POST "<pages_api>/pages/bundle?type=permanent&slug=<caminho>" \
+     -H "Authorization: Bearer <token>" \
+     -H "Content-Type: application/zip" \
+     --data-binary @/tmp/lugui-lp.zip
+   rm -f /tmp/lugui-lp.zip
+   ```
+
+   O `.zip` precisa ter o `index.html` (o servidor aceita uma pasta raiz única,
+   tipo `minha-lp/index.html`). Para efêmera, `?type=ephemeral` e sem `slug`.
+
+   **Se você gerou a página nesta sessão e não tem os arquivos**, mande cada
+   imagem no campo `assets` do `POST /pages` (passo 8), com `path` **idêntico** ao
+   que está no HTML e uma `url` https (o servidor baixa e hospeda) ou
+   `content_base64`.
+
+   Regras que valem sempre:
+   - **NUNCA deixe `<img src>` apontando para site de terceiros.** Quebra quando o
+     outro lado sai do ar, vaza o tráfego da Lugui e, em página efêmera, entrega o
+     link secreto (Referer) para o host de fora. Mande a imagem como asset.
+   - **NUNCA cole imagem grande como `data:image/...;base64,...` no HTML.** O
+     servidor extrai e comprime, mas você desperdiça contexto à toa.
+   - `alt` descritivo sempre; `width`/`height` para não pular layout.
+   - Formatos aceitos: png, jpg, webp, gif, avif, svg, css, js, json, html, fontes
+     (woff2/woff/ttf/otf) e `.ico`. O servidor recomprime toda imagem para WebP,
+     redimensiona para no máx. 2000px e remove EXIF/GPS.
+   - **Leia `unresolved_references` na resposta.** Se vier preenchido, aquelas
+     imagens vão dar 404 — republique mandando os arquivos. Não diga que está
+     pronto sem esse campo vazio.
+
 8. **Build the JSON body in a temp file (do NOT interpolate the HTML inline).**
    The HTML contains quotes and newlines, so escape it as a proper JSON string.
    Write the request body to a temp file, e.g. `/tmp/lugui-ai-publish.json`, with
@@ -153,13 +195,21 @@ API, and report the result. The file to publish is in `$ARGUMENTS`.
    {
      "html": "<!doctype html>...escaped HTML as a JSON string...",
      "type": "permanent",
-     "slug": null
+     "slug": null,
+     "assets": [
+       { "path": "hero.jpg", "url": "https://exemplo.com/foto-original.jpg" },
+       { "path": "img/logo.png", "content_base64": "iVBORw0KGgo..." }
+     ]
    }
    ```
 
    - Use `"type": "permanent"` or `"type": "ephemeral"` per the user's choice.
    - Set `"slug"` to the chosen canonical path for permanent pages (it may be a
      nested path like `relatorios/cardinali/q2`), or `null`.
+   - `"assets"` é opcional; omita quando a página não tem arquivo local. Cada item
+     leva exatamente **um** entre `url` (https) e `content_base64`, e o `path` tem
+     que ser idêntico à referência no HTML. Para arquivo local, gere o base64 com
+     `base64 -i <arquivo>` (macOS) / `base64 -w0 <arquivo>` (Linux).
    - The simplest robust way: use the Write tool to author the JSON file with
      the HTML correctly escaped as a JSON string value. `jq`/`python` are NOT
      required — you build the JSON yourself.
@@ -177,7 +227,15 @@ API, and report the result. The file to publish is in `$ARGUMENTS`.
    JSON response body.
 
 10. **Report the result.** On **200/201**, parse the response JSON and show the
-   public `url` (and `expires_at` if present, for ephemeral pages). Map errors:
+   public `url` (and `expires_at` if present, for ephemeral pages). Também
+   reporte, quando vierem preenchidos:
+   - `assets` — quantos arquivos subiram e a economia (`bytes_in` → `bytes_out`);
+   - `inline_images_extracted` — imagens base64 que viraram arquivo;
+   - `unresolved_references` — **imagens que vão dar 404**: avise e ofereça
+     republicar mandando os arquivos;
+   - `skipped_files` — o que o `.zip` deixou de fora, e por quê.
+
+   Map errors:
    - **401 / 403** → invalid token or no permission → run `/lugui-ai:setup` to
      redo the web login and get a fresh token.
    - **409** → that path is already used by someone else → ask the user for a
@@ -192,6 +250,11 @@ API, and report the result. The file to publish is in `$ARGUMENTS`.
 
 ## Notes
 
-- The request body is `{ "html", "type", "slug" }`; the response is
-  `{ url, slug, type, expires_at }`.
+- The request body is `{ "html", "type", "slug", "assets" }`; the response is
+  `{ url, slug, type, expires_at, assets, assets_bytes_in, assets_bytes_out,
+  inline_images_extracted, unresolved_references, skipped_files }`.
+- Para pasta de LP existe `POST /pages/bundle` (corpo = o `.zip` cru, `?type=` e
+  `?slug=` na query) — ver passo 7.5.
+- Os assets são servidos sob a própria página (`pages.lugui.ai/<caminho>/_a/…`), e
+  excluir a página exclui os arquivos junto.
 - Never paste the token or the contents of `~/.lugui/config.json` into chat.
