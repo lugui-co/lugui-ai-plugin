@@ -76,28 +76,70 @@ usá-lo como backend de uma página.
 
 ## STEP 1 — Create the app (one-time, with the user's token)
 
-Server-side com o token pessoal de `~/.lugui/config.json` (mesmo `pages_api` +
-`token` do `/lugui-ai:pages:publish`). **Pergunte o ACL.** Para o padrão (b),
-ligue também `allow_public_fill`:
+Server-side, com a credencial do usuário — a mesma do `/lugui-ai:pages:publish`
+(`LUGUI_TOKEN` no ambiente ou `~/.lugui/config.json`). O Bash tool não guarda
+estado entre chamadas: **cada chamada começa com o bloco de credencial abaixo,
+igual**, e usa `lugui_curl`. **NUNCA escreva o valor do token num comando; use
+sempre `lugui_curl`.** Nunca abra `~/.lugui/config.json` com a ferramenta Read.
 
-```bash
+```sh
+# --- lugui-credencial v1: cole IGUAL no topo de cada chamada Bash que fala com a API ---
+# NUNCA escreva o valor do token num comando: use sempre lugui_curl (o token vai por stdin, fora do argv).
+_lg_tok="${LUGUI_TOKEN:-${LUGUI_PAGES_TOKEN:-}}"; _lg_api="${LUGUI_PAGES_API:-}"; _lg_src=none
+[ -n "$_lg_tok" ] && _lg_src=env
+_lg_cfg="$HOME/.lugui/config.json"
+if [ -r "$_lg_cfg" ]; then
+  if [ -z "$_lg_tok" ]; then
+    _lg_tok=$(sed -n 's/.*"token"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$_lg_cfg" | head -n 1)
+    [ -n "$_lg_tok" ] && _lg_src=file
+  fi
+  [ -z "$_lg_api" ] && _lg_api=$(sed -n 's/.*"pages_api"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$_lg_cfg" | head -n 1)
+fi
+_lg_api="${_lg_api:-https://pages-api.coolify.lugui.ai}"; _lg_api="${_lg_api%/}"
+case "$_lg_api" in https://*|http://127.0.0.1:*|http://localhost:*) ;;
+  *) printf 'lugui: endereço da API recusado (%s): precisa ser https://\n' "$_lg_api" >&2; exit 2 ;; esac
+case "$_lg_tok" in *[!A-Za-z0-9._-]*)
+  printf 'lugui: o token (fonte: %s) tem caracteres inesperados; gere outro.\n' "$_lg_src" >&2; exit 2 ;; esac
+if [ -z "$_lg_tok" ]; then
+  if [ "${CLAUDE_CODE_REMOTE:-}" = true ]; then
+    printf '%s\n' "lugui: sessão na nuvem (rotina ou claude.ai/code) sem credencial. Aqui não existe ~/.lugui e rodar /lugui-ai:setup não resolve (cada login cria mais um token)." \
+      "Configure uma vez: LUGUI_TOKEN nas variáveis do ambiente de nuvem + Network access Custom liberando pages-api.coolify.lugui.ai." \
+      "Só para publicar páginas, o conector Lugui Pages (https://pages-api.coolify.lugui.ai/mcp) também serve; ele ainda não lê nem grava dados de apps." >&2
+  else
+    printf '%s\n' "lugui: não achei credencial (nem LUGUI_TOKEN no ambiente, nem ~/.lugui/config.json)." \
+      "Neste computador: rode /lugui-ai:setup uma vez. Sessão sem navegador (servidor, CI): defina LUGUI_TOKEN no ambiente." >&2
+  fi
+  exit 3
+fi
+lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl -sS -K - "$@"; }
+# --- fim lugui-credencial ---
+```
+
+Saída 3 (sem credencial) ou 2 (configuração inválida): repasse a mensagem do
+bloco e pare — ela já diferencia computador (`/lugui-ai:setup`) de sessão na
+nuvem (conector ou `LUGUI_TOKEN`). **Pergunte o ACL.** Para o padrão (b), ligue
+também `allow_public_fill`:
+
+```sh
+# [bloco lugui-credencial v1, inteiro, aqui]
+
 # (a) interna:
-curl -sS -X POST "<pages_api>/apps" -H "Authorization: Bearer <token>" \
+lugui_curl -X POST "$_lg_api/apps" \
   -H "Content-Type: application/json" -d '{"name":"Tarefas","acl":"shared"}'
 
 # (b) backoffice com links públicos:
-curl -sS -X POST "<pages_api>/apps" -H "Authorization: Bearer <token>" \
+lugui_curl -X POST "$_lg_api/apps" \
   -H "Content-Type: application/json" -d '{"name":"Implantação","acl":"private"}'
-curl -sS -X PATCH "<pages_api>/apps/<app_key>" -H "Authorization: Bearer <token>" \
+lugui_curl -X PATCH "$_lg_api/apps/<app_key>" \
   -H "Content-Type: application/json" -d '{"allow_public_fill":true}'
 
 # (c) formulário público aberto — acl private (só o dono lê) + allow_public_create:
-curl -sS -X POST "<pages_api>/apps" -H "Authorization: Bearer <token>" \
+lugui_curl -X POST "$_lg_api/apps" \
   -H "Content-Type: application/json" \
   -d '{"name":"Leads landing","acl":"private","allow_public_create":true}'
 # → guarde o "app_key" E o "form_token" da resposta (o form_token vai na página
 #   pública; o app_key+collection no painel admin).
-# → guarde o app_key. (Se não tem token: rode /lugui-ai:setup.)
+# → guarde o app_key. (Se não tem credencial: rode /lugui-ai:setup.)
 ```
 
 ## STEP 2 — Load the client library

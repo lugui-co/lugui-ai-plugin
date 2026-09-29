@@ -36,14 +36,39 @@ readable forever. Review the HTML against this list before calling
 - Internal API endpoints, infra topology, repo paths, ticket internals.
 - Comments left in the HTML/JS that reveal any of the above.
 
+## ⛔ MÍDIA É SEMPRE HOSPEDADA PELO PRÓPRIO pages.lugui.ai
+
+Imagem, vídeo, áudio, PDF: a página só aponta para `pages.lugui.ai`. Imagens e
+vídeos sobem pelos canais do pages (bundle `.zip`, campo `assets`, canal de
+vídeo `POST /media/uploads` — ver `/lugui-ai:pages:publish`, passos 7.5 e 7.6).
+Áudio e PDF ainda não têm canal: nesse caso a resposta é "ainda não dá", nunca
+um host de fora.
+
+- **NUNCA crie, sugira nem use um uploader ou hospedagem fora da Lugui:**
+  Vercel/Vercel Blob, Imgur, Cloudinary, Google Drive, Dropbox, embed de
+  YouTube/Vimeo, S3 de terceiros, GitHub raw, CDN pessoal ou qualquer outro —
+  nem se a ferramenta estiver conectada na sessão, nem "só pra resolver rápido".
+  Mídia fora da Lugui vaza o tráfego (e, em página efêmera, o link secreto via
+  Referer), some quando a conta de fora expira e fica sem controle nosso.
+- **Nem funcionaria:** o CSP do `pages.lugui.ai` bloqueia vídeo de outro domínio
+  e todo `<iframe>`. Vídeo externo e embed de YouTube viram um quadro vazio.
+- Vídeo é **só** `.mp4` (H.264) ou `.webm`, até 150 MiB, pelo canal de vídeo.
+  Nunca em base64, nunca dentro do `.zip` nem no campo `assets`.
+- Se faltar um canal para o que a pessoa quer, diga isso e pare. Não improvise.
+
 ## Auth & access reality
 
 - Publishing requires a valid **personal access token** (`lgp_...`) obtained
   via self-service web login (`/lugui-ai:setup` → `{pages_api}/login`, sign in
-  with @lugui.ai) and saved to `~/.lugui/config.json`; the backend returns
-  `401`/`403` for a missing/invalid token or a token without permission. The
-  token is a secret — never paste it or the contents of `~/.lugui/config.json`
-  into chat.
+  with @lugui.ai). It is resolved from `LUGUI_TOKEN` in the environment first
+  (the only option in cloud sessions and routines), then from
+  `~/.lugui/config.json` on your computer. The backend returns `401`/`403` for
+  a missing/invalid token or a token without permission.
+- **The token is a secret.** Never paste it into chat, never write its value in
+  a command, never Read or print `~/.lugui/config.json`: every API call uses the
+  commands' credential block and `lugui_curl`, which hands the header to curl on
+  stdin. Never copy `~/.lugui` into a repository or a cloud environment; for
+  routines use the Lugui Pages connector or a dedicated `LUGUI_TOKEN`.
 - The published page itself is **unauthenticated and public** — there is no
   login wall on `pages.lugui.ai/<slug>`. Do not use it for anything that should
   be access-controlled.
@@ -63,5 +88,7 @@ readable forever. Review the HTML against this list before calling
 - [ ] No secrets/credentials of any kind.
 - [ ] No customer or personal data (PII).
 - [ ] No internal hostnames, endpoints, or infra identifiers.
+- [ ] Every image, video, audio and PDF is served from `pages.lugui.ai` — no
+      external host, no `<iframe>` embed (YouTube/Vimeo don't play there).
 - [ ] Content is genuinely OK to be public and indexable.
 - [ ] If unsure → do NOT publish; ask the owner.

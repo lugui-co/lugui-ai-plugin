@@ -23,6 +23,10 @@ external dependencies, accessible, and safe to expose.
    internet.
 4. **No remote calls to internal services.** Don't `fetch()` internal Lugui
    APIs from a public page; CORS and auth will fail and it exposes endpoints.
+5. **Media is hosted by pages.lugui.ai only.** Images and videos go through the
+   publish channels (`/lugui-ai:pages:publish`, steps 7.5 and 7.6); never point
+   `src` at an external host. The page CSP blocks external video and every
+   `<iframe>`, so YouTube/Vimeo embeds render as an empty box.
 
 ## HTML
 
