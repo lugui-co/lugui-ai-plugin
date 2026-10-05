@@ -61,7 +61,7 @@ For local development against a checkout, point the marketplace at the path:
 
 That's the whole install — no `pip`, no dependencies. Then run `/lugui-ai:setup`.
 
-**Updating** (to get a new version, e.g. 0.10.0):
+**Updating** (to get a new version, e.g. 0.10.1):
 
 ```
 /plugin marketplace update lugui-marketplace
@@ -142,6 +142,15 @@ dentro do HTML, do `.zip` ou do campo `assets`:
   link; você abre, escolhe o vídeo, espera o **"Pronto"** e avisa.
 - O resultado é um endereço `https://pages.lugui.ai/_m/<id>/<nome>.mp4` para
   `<video controls playsinline preload="metadata" src="…">`.
+- **A URL só vale depois do "ready".** Pedir o envio reserva o endereço, mas o
+  vídeo só existe quando o `.../complete` (ou o "Pronto" do navegador) responde
+  `"status": "ready"`. Antes disso a URL serve um player quebrado — e a
+  publicação **recusa (422)** qualquer página que aponte para um vídeo que não
+  terminou de subir, não existe ou foi recusado. Terminar o envio resolve;
+  editar o HTML para contornar, não.
+- Se o computador não alcança o armazenamento (sandbox, rede restrita, sessão
+  na nuvem), o envio **não** é refeito: o Claude te entrega o link de navegador
+  do mesmo envio — você abre, escolhe o arquivo, espera o **"Pronto"** e avisa.
 - **Nada de Vercel, Google Drive, Dropbox, YouTube/Vimeo ou outro host**: o CSP
   do `pages.lugui.ai` bloqueia vídeo de outro domínio e `<iframe>`, então nem
   tocaria.

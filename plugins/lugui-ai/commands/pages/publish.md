@@ -298,7 +298,7 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
 
    Passo 1 — pedir o envio. A resposta é um arquivo de configuração do curl com
    uma assinatura de upload válida por 1 hora: **não imprima o conteúdo dele**,
-   só as linhas de comentário.
+   só a linha `upload_id` (o comando abaixo já filtra).
 
    ```sh
    # [bloco lugui-credencial v1, inteiro, aqui]
@@ -310,11 +310,18 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
      "$_lg_api/media/uploads?format=curl")
    rm -f /tmp/lugui-media-req.json
    if [ "$_lg_code" = 201 ]; then
-     sed -n -e 's/^# \(upload_id=.*\)/\1/p' -e 's/^# \(public_url=.*\)/\1/p' /tmp/lugui-upload.cfg
+     sed -n 's/^# \(upload_id=.*\)/\1/p' /tmp/lugui-upload.cfg
    else
      echo "HTTP $_lg_code"; cat /tmp/lugui-upload.cfg; rm -f /tmp/lugui-upload.cfg
    fi
    ```
+
+   **O passo 1 só reserva o endereço. A `public_url` existe no arquivo de
+   configuração apenas como comentário e NÃO está utilizável: ainda não existe
+   nenhum byte lá, e a página serviria um player quebrado. O `<video src>` vem
+   EXCLUSIVAMENTE da resposta do passo 3 com `"status": "ready"` (campo
+   `public_url` ou `html`). Nunca do passo 1, nunca adivinhado a partir do
+   `upload_id` e do nome do arquivo.**
 
    Passo 2 — mandar o arquivo **direto para o armazenamento**, com `curl` puro:
    **sem `lugui_curl` e sem cabeçalho `Authorization`** (a assinatura já está no
@@ -324,14 +331,29 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
 
    ```sh
    curl -sS --fail-with-body -K /tmp/lugui-upload.cfg -F "file=@./convite.mp4" \
-     -o /tmp/lugui-s3.xml -w 'HTTP %{http_code}\n' \
-     && rm -f /tmp/lugui-upload.cfg || cat /tmp/lugui-s3.xml
+     -o /tmp/lugui-s3.xml -w 'HTTP %{http_code}\n'; _lg_rc=$?
+   if [ "$_lg_rc" -eq 0 ]; then rm -f /tmp/lugui-upload.cfg; else echo "curl saiu com $_lg_rc"; cat /tmp/lugui-s3.xml 2>/dev/null; fi
    rm -f /tmp/lugui-s3.xml
    ```
 
-   `HTTP 201` = chegou. Se falhar por rede, repita o passo 2 (a assinatura vale 1
-   hora); depois disso, recomece do passo 1. Apague `/tmp/lugui-upload.cfg` ao
+   `HTTP 201` = chegou. Se falhar por rede passageira (a conexão caiu no meio,
+   `HTTP 5xx` do armazenamento), repita o passo 2 (a assinatura vale 1 hora);
+   depois disso, recomece do passo 1. Apague `/tmp/lugui-upload.cfg` ao
    terminar.
+
+   **Este computador não alcança o armazenamento** — `curl` saiu com `6`
+   (`Could not resolve host`), `7` (`Failed to connect`), `28` (timeout) ou
+   qualquer outro erro de rede, com `HTTP 000` e nenhuma resposta: a máquina não
+   chega a `lugui-pages-production.s3.amazonaws.com` (sandbox, rede restrita,
+   sessão na nuvem). Repetir não resolve e **NÃO recomece do passo 1** — o envio
+   já existe. Pegue o `browser_url` DESSE MESMO envio (está nas linhas de
+   comentário do arquivo), entregue para a pessoa exatamente como no fluxo (ii)
+   e, quando ela avisar o "Pronto", vá ao passo 3 com o mesmo `upload_id`. Só
+   então apague o arquivo:
+
+   ```sh
+   sed -n 's/^# \(browser_url=.*\)/\1/p' /tmp/lugui-upload.cfg && rm -f /tmp/lugui-upload.cfg
+   ```
 
    Passo 3 — finalizar: o servidor confere que o arquivo chegou e que é mesmo um
    vídeo MP4/WEBM. Use o `upload_id` do passo 1 (é o mesmo endereço do
@@ -341,6 +363,11 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
    # [bloco lugui-credencial v1, inteiro, aqui]
    lugui_curl -X POST -w '\nHTTP %{http_code}\n' "$_lg_api/media/uploads/<upload_id>/complete"
    ```
+
+   **Só um `HTTP 200` cujo corpo diz `"status": "ready"` libera o vídeo.** `409`
+   = o arquivo não está lá: volte ao passo 2 (ou espere o "Pronto" do navegador)
+   e chame o passo 3 de novo — não publique. Qualquer outro código: veja a lista
+   de erros no fim desta seção.
 
    **Fluxo (ii) — o arquivo NÃO está neste computador** (sessão na nuvem, vídeo
    anexado no chat, arquivo no celular ou no computador de outra pessoa).
@@ -353,7 +380,7 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
      -H 'Content-Type: application/json' --data-binary @/tmp/lugui-media-req.json \
      "$_lg_api/media/uploads?format=curl")
    if [ "$_lg_code" = 201 ]; then
-     sed -n -e 's/^# \(upload_id=.*\)/\1/p' -e 's/^# \(public_url=.*\)/\1/p' -e 's/^# \(browser_url=.*\)/\1/p' /tmp/lugui-upload.cfg
+     sed -n -e 's/^# \(upload_id=.*\)/\1/p' -e 's/^# \(browser_url=.*\)/\1/p' /tmp/lugui-upload.cfg
    else
      echo "HTTP $_lg_code"; cat /tmp/lugui-upload.cfg
    fi
@@ -371,11 +398,26 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
    link vale 1 hora e serve uma vez só.
 
    **Resposta do passo 3** (`200`): `{"upload_id", "status": "ready",
-   "public_url", "size_bytes", "html"}`. Use o `html` pronto na página:
+   "public_url", "size_bytes", "html"}`. É daqui — e só daqui — que sai o
+   endereço do vídeo. Use o `html` pronto na página:
 
    ```html
    <video controls playsinline preload="metadata" src="https://pages.lugui.ai/_m/<id>/convite.mp4"></video>
    ```
+
+   Passo 4 — prova. Antes de colocar a URL na página, confirme que o endereço
+   responde: a saída tem que ser `200` (`403` quer dizer que o arquivo não está
+   lá — volte ao passo 2):
+
+   ```sh
+   curl -sS -o /dev/null -w '%{http_code}\n' -I "https://pages.lugui.ai/_m/<id>/convite.mp4"
+   ```
+
+   O publish (passo 9 — e também o `/pages/bundle` e o conector) **RECUSA com
+   `HTTP 422`** qualquer página cujo `<video src>` aponte para um vídeo que não
+   terminou de subir, não existe ou foi recusado. Se isso acontecer, repita o
+   `detail` para a pessoa e termine o envio (passos 2 e 3); **não** edite o HTML
+   para contornar (tirar o vídeo, trocar o endereço, apontar para fora).
 
    Capa opcional: `poster="capa.jpg"`, com `capa.jpg` subindo como imagem
    comum (passo 7.5). Pasta de LP que já tinha o vídeo: troque a referência
@@ -392,6 +434,9 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
      exporte de novo e recomece do passo 1.
    - **410** → o prazo de 1 hora acabou: recomece do passo 1.
    - **401 / 403 / 404** → token inválido, ou o envio é de outra pessoa.
+   - **422** no publish (passo 9) → "vídeo ainda não chegou / não existe / foi
+     recusado": a página aponta para um vídeo sem arquivo. Termine os passos 2 e
+     3 (até o `"status": "ready"`), passe no passo 4 e republique.
    - Repita o `detail` da resposta para a pessoa: ele já vem em português.
 
 8. **Build the JSON body in a temp file (do NOT interpolate the HTML inline).**
@@ -474,8 +519,10 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
       expanded up to 96 MiB. Shrink or remove the file named in `detail`; a
       video never belongs here (step 7.6).
     - **422** → server rejected the request. Either the path is invalid/reserved
-      (ask for a different path) or the HTML is invalid (empty / not HTML /
-      contains a secret) → fix and retry.
+      (ask for a different path), the HTML is invalid (empty / not HTML /
+      contains a secret), or a `<video src>` points to a video that has not
+      finished uploading (`detail` names the upload; finish steps 2–3 of 7.6 and
+      republish — never edit the HTML around it) → fix and retry.
 
 11. **Clean up.** Remove the temp files (`rm -f /tmp/lugui-ai-publish.json
     /tmp/lugui-lp.zip /tmp/lugui-upload.cfg`) so the HTML/body and any upload
