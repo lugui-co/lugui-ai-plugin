@@ -246,6 +246,12 @@ Regras:
 - O `form_token` é write-only: o público só CRIA, nunca lê/lista. Os dados só
   aparecem no painel admin (login @lugui). Por isso `acl:"private"`.
 - Trate `LuguiRateLimitError` (429) no submit com mensagem amigável e retry.
+- **Cada envio avisa o canal de formulários no Slack** (automático, no
+  servidor): nome do formulário, página de origem e as respostas. Por isso o
+  submit usa SEMPRE `lugui.public.create` — um `fetch` escrito à mão não manda a
+  página e o aviso sai como "Página: não informada". Como as respostas vão para
+  o Slack, não peça no formulário dado sensível que o time não precise ver
+  (documento, dado bancário, saúde).
 - **Anti-spam:** ainda NÃO há captcha/honeypot (o rate-limit por IP+token é o
   único freio hoje). É um TODO — não invente captcha agora; pode avisar o usuário
   que proteção anti-spam mais forte vem depois.
