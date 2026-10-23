@@ -133,11 +133,13 @@ Configure uma vez, de um destes jeitos:
 Vídeo na página é **sempre hospedado pelo próprio `pages.lugui.ai`** e nunca vai
 dentro do HTML, do `.zip` ou do campo `assets`:
 
-- Formatos: **`.mp4` (H.264) ou `.webm`, até 150 MiB**. `.mov`/HEVC: exporte
+- Formatos: **`.mp4` (H.264) ou `.webm`, até 600 MiB**. `.mov`/HEVC: exporte
   como MP4 (no Mac, QuickTime → Arquivo → Exportar como → 1080p).
-- Arquivo no seu computador: o `/lugui-ai:pages:publish` pede o envio
-  (`POST /media/uploads?format=curl`), manda o arquivo direto para o
-  armazenamento com `curl` e finaliza (`.../complete`).
+- Arquivo no seu computador: o `/lugui-ai:pages:publish` pede o envio em partes
+  (`POST /media/uploads?format=curl` com `"multipart": true`), corta o vídeo em
+  partes de 64 MiB, manda cada uma direto para o armazenamento com `curl` e
+  finaliza (`.../complete`). Se a conexão cair, só as partes que faltam são
+  reenviadas (`.../parts`).
 - Arquivo fora do computador (sessão na nuvem, anexo no chat): o Claude te dá um
   link; você abre, escolhe o vídeo, espera o **"Pronto"** e avisa.
 - O resultado é um endereço `https://pages.lugui.ai/_m/<id>/<nome>.mp4` para

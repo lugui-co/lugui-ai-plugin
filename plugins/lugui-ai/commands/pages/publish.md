@@ -280,10 +280,10 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
    `https://pages.lugui.ai/_m/<id>/<nome>.mp4` para usar no `<video src>`.
 
    Regras:
-   - **Só `.mp4` (H.264) ou `.webm`, até 150 MiB por vídeo.**
+   - **Só `.mp4` (H.264) ou `.webm`, até 600 MiB por vídeo.**
    - `.mov`, HEVC, `.m4v`, `.mkv`, `.avi` → peça para exportar como MP4 (H.264):
      *"No Mac: abra o vídeo no QuickTime Player → Arquivo → Exportar como →
-     1080p (se aparecer a opção HEVC, deixe desmarcada)."* Se passar de 150 MiB,
+     1080p (se aparecer a opção HEVC, deixe desmarcada)."* Se passar de 600 MiB,
      exporte em 720p. Converter aqui só se a pessoa pedir e o `ffmpeg` existir:
      `ffmpeg -i entrada.mov -c:v libx264 -pix_fmt yuv420p -c:a aac -movflags +faststart saida.mp4`.
    - **NUNCA** transforme vídeo em base64, **NUNCA** coloque vídeo no `.zip` nem
@@ -294,23 +294,26 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
      (`preparar_envio_de_video` / `verificar_envio_de_video`), elas fazem o mesmo
      que o fluxo (ii) abaixo.
 
-   **Fluxo (i) — o arquivo está neste computador.**
+   **Fluxo (i) — o arquivo está neste computador.** O vídeo sobe **em partes**
+   de 64 MiB: cada parte vai sozinha, e uma que falhar é reenviada sem
+   recomeçar o vídeo inteiro.
 
-   Passo 1 — pedir o envio. A resposta é um arquivo de configuração do curl com
-   uma assinatura de upload válida por 1 hora: **não imprima o conteúdo dele**,
-   só a linha `upload_id` (o comando abaixo já filtra).
+   Passo 1 — pedir o envio em partes. A resposta é um arquivo de configuração
+   do curl com uma URL assinada por parte, válidas por 3 horas: **não imprima
+   o conteúdo dele**, só as linhas `upload_id`, `part_count` e `split` (o
+   comando abaixo já filtra).
 
    ```sh
    # [bloco lugui-credencial v1, inteiro, aqui]
    _lg_vid="./convite.mp4"      # caminho do vídeo (.mp4 ou .webm)
    _lg_tam=$(wc -c < "$_lg_vid" | tr -d ' ')
-   printf '{"filename": "%s", "size_bytes": %s}\n' "$(basename "$_lg_vid" | sed 's/[\\"]/\\&/g')" "$_lg_tam" > /tmp/lugui-media-req.json
+   printf '{"filename": "%s", "size_bytes": %s, "multipart": true}\n' "$(basename "$_lg_vid" | sed 's/[\\"]/\\&/g')" "$_lg_tam" > /tmp/lugui-media-req.json
    _lg_code=$(lugui_curl -o /tmp/lugui-upload.cfg -w '%{http_code}' -X POST \
      -H 'Content-Type: application/json' --data-binary @/tmp/lugui-media-req.json \
      "$_lg_api/media/uploads?format=curl")
    rm -f /tmp/lugui-media-req.json
    if [ "$_lg_code" = 201 ]; then
-     sed -n 's/^# \(upload_id=.*\)/\1/p' /tmp/lugui-upload.cfg
+     sed -n -e 's/^# \(upload_id=.*\)/\1/p' -e 's/^# \(part_count=.*\)/\1/p' -e 's/^# \(split=.*\)/\1/p' /tmp/lugui-upload.cfg
    else
      echo "HTTP $_lg_code"; cat /tmp/lugui-upload.cfg; rm -f /tmp/lugui-upload.cfg
    fi
@@ -323,23 +326,46 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
    `public_url` ou `html`). Nunca do passo 1, nunca adivinhado a partir do
    `upload_id` e do nome do arquivo.**
 
-   Passo 2 — mandar o arquivo **direto para o armazenamento**, com `curl` puro:
-   **sem `lugui_curl` e sem cabeçalho `Authorization`** (a assinatura já está no
-   arquivo). O `-K` vem **antes** do `-F` para o arquivo ir por último, como o
-   armazenamento exige. Vídeo grande leva minutos: rode com o timeout máximo do
-   Bash (600000 ms).
+   Passo 2 — cortar o vídeo e mandar as partes **direto para o armazenamento**,
+   com `curl` puro: **sem `lugui_curl` e sem cabeçalho `Authorization`** (cada
+   parte já tem a assinatura na URL). O `split` usa exatamente o tamanho da
+   linha `split=` do passo 1 (troque `<video>` pelo caminho do vídeo), e o
+   `curl` roda **dentro da pasta das partes**, porque o arquivo de configuração
+   cita cada parte pelo nome (`lugui-parte.aaa`, `lugui-parte.aab`, …). Rode
+   este comando **em segundo plano** (Bash com `run_in_background`): um vídeo
+   grande passa dos 10 minutos de uma chamada comum. Espere o aviso de que
+   terminou, sem ficar consultando.
 
    ```sh
-   curl -sS --fail-with-body -K /tmp/lugui-upload.cfg -F "file=@./convite.mp4" \
-     -o /tmp/lugui-s3.xml -w 'HTTP %{http_code}\n'; _lg_rc=$?
-   if [ "$_lg_rc" -eq 0 ]; then rm -f /tmp/lugui-upload.cfg; else echo "curl saiu com $_lg_rc"; cat /tmp/lugui-s3.xml 2>/dev/null; fi
-   rm -f /tmp/lugui-s3.xml
+   rm -rf /tmp/lugui-partes && mkdir -p /tmp/lugui-partes && cd /tmp/lugui-partes \
+     && split -b <part_size> -a 3 "<caminho-absoluto-do-video>" lugui-parte. \
+     && curl -sS --fail-with-body --retry 3 -K /tmp/lugui-upload.cfg -o /dev/null -w 'parte HTTP %{http_code}\n'
+   echo "curl saiu com $?"
    ```
 
-   `HTTP 201` = chegou. Se falhar por rede passageira (a conexão caiu no meio,
-   `HTTP 5xx` do armazenamento), repita o passo 2 (a assinatura vale 1 hora);
-   depois disso, recomece do passo 1. Apague `/tmp/lugui-upload.cfg` ao
-   terminar.
+   Uma linha `parte HTTP 200` por parte = todas chegaram. Vá ao passo 3.
+
+   **Faltou alguma parte** (algum `HTTP` diferente de `200`, `curl` saiu com
+   erro, ou a chamada foi interrompida): **não recomece do passo 1** — as
+   partes que chegaram ficam guardadas. Peça só as que faltam, com URLs novas,
+   e mande de novo da mesma pasta (também em segundo plano):
+
+   ```sh
+   # [bloco lugui-credencial v1, inteiro, aqui]
+   _lg_code=$(lugui_curl -o /tmp/lugui-resto.cfg -w '%{http_code}' \
+     "$_lg_api/media/uploads/<upload_id>/parts?format=curl")
+   if [ "$_lg_code" = 200 ]; then
+     sed -n 's/^# \(received=.*\)/\1/p' /tmp/lugui-resto.cfg
+     cd /tmp/lugui-partes && curl -sS --fail-with-body --retry 3 -K /tmp/lugui-resto.cfg -o /dev/null -w 'parte HTTP %{http_code}\n'
+   else
+     echo "HTTP $_lg_code"; cat /tmp/lugui-resto.cfg
+   fi
+   rm -f /tmp/lugui-resto.cfg
+   ```
+
+   Repita até não faltar nada (o passo 3 também avisa: `409` com "Faltam N de M
+   partes"). Ao terminar, apague as partes e as assinaturas:
+   `rm -rf /tmp/lugui-partes /tmp/lugui-upload.cfg`.
 
    **Este computador não alcança o armazenamento** — `curl` saiu com `6`
    (`Could not resolve host`), `7` (`Failed to connect`), `28` (timeout) ou
@@ -352,11 +378,11 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
    então apague o arquivo:
 
    ```sh
-   sed -n 's/^# \(browser_url=.*\)/\1/p' /tmp/lugui-upload.cfg && rm -f /tmp/lugui-upload.cfg
+   sed -n 's/^# \(browser_url=.*\)/\1/p' /tmp/lugui-upload.cfg && rm -rf /tmp/lugui-upload.cfg /tmp/lugui-partes
    ```
 
-   Passo 3 — finalizar: o servidor confere que o arquivo chegou e que é mesmo um
-   vídeo MP4/WEBM. Use o `upload_id` do passo 1 (é o mesmo endereço do
+   Passo 3 — finalizar: o servidor confere as partes, junta tudo num arquivo só
+   e confere que é mesmo um vídeo MP4/WEBM. Use o `upload_id` do passo 1 (é o mesmo endereço do
    `complete_url`, montado sobre `$_lg_api` para o token nunca ir a outro lugar):
 
    ```sh
@@ -365,8 +391,8 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
    ```
 
    **Só um `HTTP 200` cujo corpo diz `"status": "ready"` libera o vídeo.** `409`
-   = o arquivo não está lá: volte ao passo 2 (ou espere o "Pronto" do navegador)
-   e chame o passo 3 de novo — não publique. Qualquer outro código: veja a lista
+   = o arquivo (ou parte dele) não está lá: mande as partes que faltam (passo 2)
+   ou espere o "Pronto" do navegador, e chame o passo 3 de novo — não publique. Qualquer outro código: veja a lista
    de erros no fim desta seção.
 
    **Fluxo (ii) — o arquivo NÃO está neste computador** (sessão na nuvem, vídeo
@@ -395,7 +421,7 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
    > `<browser_url>`
 
    Quando a pessoa avisar, rode o **passo 3** do fluxo (i) com o `upload_id`. O
-   link vale 1 hora e serve uma vez só.
+   link vale 3 horas e serve uma vez só.
 
    **Resposta do passo 3** (`200`): `{"upload_id", "status": "ready",
    "public_url", "size_bytes", "html"}`. É daqui — e só daqui — que sai o
@@ -427,12 +453,15 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
    Erros do canal de vídeo:
    - **400** → formato não aceito (`.mov` etc.): peça para exportar como MP4
      (H.264) e recomece.
-   - **413** → maior que 150 MiB: exporte em resolução menor.
-   - **409** no passo 3 → o arquivo ainda não chegou: termine o passo 2 (ou
-     espere o "Pronto" do fluxo (ii)) e tente de novo.
-   - **422** no passo 3 → não é um MP4/WEBM válido (o arquivo foi descartado):
-     exporte de novo e recomece do passo 1.
-   - **410** → o prazo de 1 hora acabou: recomece do passo 1.
+   - **413** → maior que 600 MiB: exporte em resolução menor.
+   - **409** no passo 3 → o arquivo (ou alguma parte) ainda não chegou: mande o
+     que falta (passo 2, "Faltou alguma parte") ou espere o "Pronto" do fluxo
+     (ii), e tente de novo.
+   - **422** no passo 3 → não é um MP4/WEBM válido, ou as partes não batem com
+     o envio combinado (o arquivo foi descartado): confira o `split` e recomece
+     do passo 1.
+   - **410** → o prazo de 3 horas acabou, ou o envio em partes foi cancelado:
+     recomece do passo 1.
    - **401 / 403 / 404** → token inválido, ou o envio é de outra pessoa.
    - **422** no publish (passo 9) → "vídeo ainda não chegou / não existe / foi
      recusado": a página aponta para um vídeo sem arquivo. Termine os passos 2 e

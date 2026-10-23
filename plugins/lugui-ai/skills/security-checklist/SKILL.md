@@ -52,7 +52,7 @@ um host de fora.
   Referer), some quando a conta de fora expira e fica sem controle nosso.
 - **Nem funcionaria:** o CSP do `pages.lugui.ai` bloqueia vídeo de outro domínio
   e todo `<iframe>`. Vídeo externo e embed de YouTube viram um quadro vazio.
-- Vídeo é **só** `.mp4` (H.264) ou `.webm`, até 150 MiB, pelo canal de vídeo.
+- Vídeo é **só** `.mp4` (H.264) ou `.webm`, até 600 MiB, pelo canal de vídeo.
   Nunca em base64, nunca dentro do `.zip` nem no campo `assets`.
 - Se faltar um canal para o que a pessoa quer, diga isso e pare. Não improvise.
 
