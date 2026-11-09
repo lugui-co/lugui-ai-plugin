@@ -1,5 +1,5 @@
 ---
-description: List the pages you published to pages.lugui.ai (path, public link, type, created) using curl + your personal token.
+description: List the pages you published to pages.lugui.ai (path, link, type, visibility, created) using curl + your personal token.
 ---
 
 # /lugui-ai:pages:list
@@ -64,8 +64,9 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
 
    The body is a JSON array; each item has:
    `slug` (the canonical path), `url` (public link), `type`
-   (`permanent` | `ephemeral`), `size_bytes`, `created_at`, `updated_at`,
-   and `expires_at` (only for ephemeral pages).
+   (`permanent` | `ephemeral`), `visibility` (`internal` | `public`),
+   `size_bytes`, `created_at`, `updated_at`, and `expires_at` (only for
+   ephemeral pages).
 
    - **401 / 403** → invalid/expired token → on a computer, `/lugui-ai:setup`;
      with `fonte=env` (cloud), the `LUGUI_TOKEN` in the environment must be
@@ -73,12 +74,14 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
 
 2. **Format a readable table** sorted by `updated_at` (most recent first), e.g.:
 
-   | Caminho | Link | Tipo | Criada em |
-   |---|---|---|---|
-   | `relatorios/cardinali/q2` | https://pages.lugui.ai/relatorios/cardinali/q2 | permanente | 05/06/2026 |
+   | Caminho | Link | Tipo | Visibilidade | Criada em |
+   |---|---|---|---|---|
+   | `relatorios/cardinali/q2` | https://pages.lugui.ai/relatorios/cardinali/q2 | permanente | 🔒 interna | 05/06/2026 |
 
    - Render `type` in pt-BR: `permanent` → **permanente**, `ephemeral` →
      **efêmera**. For ephemeral pages, also show `expires_at` (expira em …).
+   - Render `visibility`: `internal` → **🔒 interna** (só login @lugui.ai),
+     `public` → **🌐 pública** (qualquer pessoa com o link).
    - Format dates as `dd/mm/aaaa` (pt-BR).
 
 3. **Empty state.** If the array is empty, say something friendly like: *"Você
@@ -88,6 +91,7 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
 
 > Para **atualizar** uma página, rode `/lugui-ai:pages:publish` no **mesmo
 > caminho** (mesmo `slug`) — isso sobrescreve o conteúdo. Para **apagar**, use
-> `/lugui-ai:pages:delete <caminho>`.
+> `/lugui-ai:pages:delete <caminho>`. Para mudar quem pode abrir, use
+> `/lugui-ai:pages:visibility <caminho> <interna|publica>`.
 
 Never print the token or the contents of `~/.lugui/config.json`.

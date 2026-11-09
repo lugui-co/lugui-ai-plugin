@@ -30,7 +30,9 @@ web-login auth.
     mídia (`POST /media/uploads`). O servidor recomprime toda imagem (WebP, máx.
     2000px, sem EXIF) e reescreve os caminhos do HTML.
   - `/lugui-ai:pages:list`, `/lugui-ai:pages:delete <caminho>`,
-    `/lugui-ai:data:list` — manage what you published.
+    `/lugui-ai:pages:visibility <caminho> <interna|publica>`,
+    `/lugui-ai:data:list` — manage what you published. Pages are **internal**
+    by default (only a `@lugui.ai` login opens them); public is a choice.
 - **Skills** (auto-applied by Claude when relevant)
   - `branding` — identidade visual oficial (curadoria Marketing & Design):
     paleta lima/navy light-first, tipografia Plus Jakarta Sans + DM Sans, logo
