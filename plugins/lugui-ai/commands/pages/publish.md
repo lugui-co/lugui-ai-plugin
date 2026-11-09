@@ -103,13 +103,35 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
    - **Efêmera** → stays automatic (no path needed — the server assigns a random
      one and the page expires server-side).
 
+4.1 **Ask who can open it: "interna ou pública?"** Pages are **internal** by
+   default: pages.lugui.ai only serves them to someone logged in with a
+   `@lugui.ai` Google account. Ask like this:
+
+   > Quem pode abrir essa página? **Interna** (só o time, com login @lugui.ai) ou
+   > **pública** (qualquer pessoa com o link)?
+
+   - Suggest **pública** only when the page is meant for people outside Lugui: a
+     form or landing page, terms, a client link (`#/p/<token>`), images used in
+     e-mails. Everything else (reports, numbers, plans, playbooks, client
+     terms) is **interna**.
+   - Public pages are readable by anyone with the URL **including the source
+     code**: never put internal numbers, client data or keys in one.
+   - Send `"visibility": "internal"` or `"public"`. On a re-publish of an
+     existing path you may omit it: the page keeps its current visibility.
+
 5. **Quick secret sanity check (abort on hit).** Do NOT publish if the HTML
    obviously contains a credential. Scan for, at minimum:
    - AWS access key id: `AKIA` followed by 16 uppercase/digits.
    - PEM private key: `-----BEGIN ... PRIVATE KEY-----`.
    - Google API key: `AIza` followed by ~35 url-safe chars.
    - Assignments like `secret`/`token`/`password`/`api_key` set to a quoted
-     value 8+ chars long.
+     value 8+ chars long — and any `<VENDOR>_KEY` (`PIPEDRIVE_KEY`,
+     `OPENAI_KEY`, `accessKey`...) set to a literal.
+   - `sk-…`, `xoxb-…`, `ghp_…`, Slack webhooks, `?api_token=<literal>`,
+     `'Bearer <literal>'`.
+
+   A login on the page does **not** protect a key in its source. Keys belong in
+   the data store, read after login.
 
    If any match, STOP, tell the user exactly what to remove, and do not send.
 
@@ -241,7 +263,7 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
    cd "<pasta-da-lp>" && zip -r /tmp/lugui-lp.zip . -x '.*' -x '__MACOSX/*' -x '*.mp4' -x '*.webm' -x '*.mov' -x '*.m4v' && cd - >/dev/null
    lugui_curl -w '\nHTTP %{http_code}\n' -X POST \
      -H 'Content-Type: application/zip' --data-binary @/tmp/lugui-lp.zip \
-     "$_lg_api/pages/bundle?type=permanent&slug=<caminho>"
+     "$_lg_api/pages/bundle?type=permanent&slug=<caminho>&visibility=internal"
    rm -f /tmp/lugui-lp.zip
    ```
 
@@ -478,6 +500,7 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
      "html": "<!doctype html>...escaped HTML as a JSON string...",
      "type": "permanent",
      "slug": null,
+     "visibility": "internal",
      "assets": [
        { "path": "hero.jpg", "url": "https://exemplo.com/foto-original.jpg" }
      ]
@@ -487,6 +510,7 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
    - Use `"type": "permanent"` or `"type": "ephemeral"` per the user's choice.
    - Set `"slug"` to the chosen canonical path for permanent pages (it may be a
      nested path like `relatorios/cardinali/q2`), or `null`.
+   - Set `"visibility"` per step 4.1.
    - `"assets"` é opcional; omita quando a página não tem arquivo. Cada item leva
      exatamente **um** entre `url` (https) e `content_base64`, e o `path` tem que
      ser idêntico à referência no HTML.
@@ -559,11 +583,13 @@ lugui_curl() { printf 'header = "Authorization: Bearer %s"\n' "$_lg_tok" | curl 
 
 ## Notes
 
-- The request body is `{ "html", "type", "slug", "assets" }`; the response is
-  `{ url, slug, type, expires_at, assets, assets_bytes_in, assets_bytes_out,
+- The request body is `{ "html", "type", "slug", "visibility", "assets" }`; the
+  response is `{ url, slug, type, visibility, expires_at, assets, assets_bytes_in, assets_bytes_out,
   inline_images_extracted, unresolved_references, skipped_files }`.
-- Para pasta de LP existe `POST /pages/bundle` (corpo = o `.zip` cru, `?type=` e
-  `?slug=` na query) — ver passo 7.5.
+- Para pasta de LP existe `POST /pages/bundle` (corpo = o `.zip` cru, `?type=`,
+  `?slug=` e `?visibility=` na query) — ver passo 7.5.
+- Trocar só a visibilidade, sem republicar: `PATCH /pages/<caminho>` com
+  `{"visibility": "public"}` ou `{"visibility": "internal"}` (só o dono).
 - Os assets são servidos sob a própria página (`pages.lugui.ai/<caminho>/_a/…`), e
   excluir a página exclui os arquivos junto. Vídeos ficam em
   `pages.lugui.ai/_m/…` e não somem quando a página é republicada.

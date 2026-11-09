@@ -18,7 +18,14 @@ readable forever. Review the HTML against this list before calling
 - **PEM private keys** — `-----BEGIN ... PRIVATE KEY-----` blocks.
 - **Google API keys** — `AIza` + 35 chars.
 - **Obvious assignments** — `secret`, `token`, `password`, `api_key`/`api-key`
-  set to a quoted value of 8+ chars (`password = "hunter2longer"`).
+  set to a quoted value of 8+ chars (`password = "hunter2longer"`), and any
+  vendor key name (`PIPEDRIVE_KEY`, `OPENAI_KEY`, `accessKey`, `client_key`...).
+- **Known token shapes** — `sk-…`, `xoxb-…`, `ghp_…`, Slack webhooks,
+  `?api_token=<literal>` in a URL, `'Bearer <literal>'`.
+- **This holds for internal pages too.** A login on the page (or at the edge)
+  does not make a key in the source safe: every logged-in colleague, browser
+  extension and shared screen gets it. Keys live in the data store and are read
+  after login.
 - Also (gate won't catch all of these — you must): OAuth client secrets,
   bearer/session tokens, DB connection strings with passwords, signed S3 URLs,
   webhook secrets, JWTs, `.env` contents, basic-auth `user:pass@host`.
@@ -69,11 +76,16 @@ um host de fora.
   commands' credential block and `lugui_curl`, which hands the header to curl on
   stdin. Never copy `~/.lugui` into a repository or a cloud environment; for
   routines use the Lugui Pages connector or a dedicated `LUGUI_TOKEN`.
-- The published page itself is **unauthenticated and public** — there is no
-  login wall on `pages.lugui.ai/<slug>`. Do not use it for anything that should
-  be access-controlled.
-- **Permanent vs ephemeral:** ephemeral pages still go public; they only expire
-  later (server-side TTL). "Ephemeral" is not "private."
+- **Visibility.** A page is `internal` (default) or `public`. Internal pages
+  are served only to a `@lugui.ai` Google login, checked by CloudFront before
+  any byte leaves; public ones to anyone with the link — **source code
+  included**. Only forms, landing pages, terms, client links and e-mail images
+  are public.
+- **Rollout:** the edge login starts in observe mode. Until it is enforced
+  (docs/login-na-borda.md in the pages-publisher), internal pages still open
+  without login, so keep reviewing them as if they were public.
+- **Permanent vs ephemeral:** "ephemeral" is not "private"; visibility is what
+  decides who opens it.
 
 ## Two-layer model (defense in depth)
 
@@ -90,5 +102,6 @@ um host de fora.
 - [ ] No internal hostnames, endpoints, or infra identifiers.
 - [ ] Every image, video, audio and PDF is served from `pages.lugui.ai` — no
       external host, no `<iframe>` embed (YouTube/Vimeo don't play there).
-- [ ] Content is genuinely OK to be public and indexable.
+- [ ] `visibility` chosen on purpose: `public` only for content meant for people
+      outside Lugui, and that content is genuinely OK to be public and indexable.
 - [ ] If unsure → do NOT publish; ask the owner.
